@@ -40,7 +40,7 @@ void test_rioev_add_del_mod (void)
 
     ENSURE (0 == rioev_del (rioev, r));
 #ifdef __linux__
-    ENSURE (-1 == riov_mod (rioev, r, 0));
+    ENSURE (-1 == rioev_mod (rioev, r, 0));
 #endif
 
     ENSURE (0 == rioev_add (rioev, w, RIOEV_OUT));
