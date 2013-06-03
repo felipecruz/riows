@@ -40,7 +40,7 @@ void test_rioev_add_del_mod (void)
 
     ENSURE (0 == rioev_del (rioev, r));
 #ifdef __linux__
-    ENSURE (-1 == rioev_mod (rioev, r, 0));
+    ENSURE (-1 == riov_mod (rioev, r, 0));
 #endif
 
     ENSURE (0 == rioev_add (rioev, w, RIOEV_OUT));
@@ -60,6 +60,53 @@ void test_rioev_add_del_mod (void)
     ENSURE (0 == rioev_del (rioev, w));
 #ifdef __linux__
     ENSURE (-1 == rioev_mod (rioev, w, 0));
+#endif
+
+#ifdef __APPLE__
+
+    /* We need more testing since rioev introduces some complexity
+     * managing it's own struct kevent array.
+     * In this array elements with 'ident' equal -1 are available spots.
+     *
+     * rioev_add - looks for the first spot
+     * rioev_mod - looks for the same element to modifie it
+     * rioev_del - looks for the tsame element to disable and 'free'.
+     */
+
+    int pipes1[2];
+    int pipes2[2];
+    int pipes3[2];
+    int status1 = pipe(pipes1);
+    int status2 = pipe(pipes2);
+    int status3 = pipe(pipes3);
+    int r1 = pipes1[0];
+    int w1 = pipes1[1];
+    int r2 = pipes2[0];
+    int w2 = pipes2[1];
+    int r3 = pipes3[0];
+    int w3 = pipes3[1];
+
+    ENSURE (0 == rioev_add (rioev, w1, RIOEV_IN));
+    ENSURE (0 == rioev_add (rioev, w2, RIOEV_IN));
+    ENSURE (0 == rioev_add (rioev, w3, RIOEV_IN));
+    ENSURE (w1 == rioev->changelist[0].ident);
+    ENSURE (w2 == rioev->changelist[1].ident);
+    ENSURE (w3 == rioev->changelist[2].ident);
+
+    ENSURE (0 == rioev_del (rioev, w2));
+    ENSURE (-1 == rioev->changelist[1].ident);
+    ENSURE (0 == rioev_del (rioev, w1));
+    ENSURE (-1 == rioev->changelist[0].ident);
+
+    ENSURE (0 == rioev_add (rioev, w2, RIOEV_IN));
+    ENSURE (w2 == rioev->changelist[0].ident);
+    ENSURE (0 == rioev_add (rioev, w1, RIOEV_IN));
+    ENSURE (w1 == rioev->changelist[1].ident);
+    ENSURE (0 == rioev_add (rioev, w3, RIOEV_IN));
+
+    /* TODO verify returned events if we add same event twice */
+    ENSURE (w3 == rioev->changelist[2].ident);
+    ENSURE (w3 == rioev->changelist[3].ident);
 #endif
 }
 
