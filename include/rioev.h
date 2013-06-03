@@ -23,6 +23,12 @@
 #define RIOEV_IN EVFILT_READ
 #define RIOEV_OUT EVFILT_WRITE
 #define RIOEV_ERR 0
+
+#define ITERATE(ctx)                                                   \
+    struct kevent *ev;                                                 \
+    int total = rioev_poll (ctx, 0);                                   \
+    for (int i = 0; i < total; i++) {                                  \
+        ev = &ctx->eventlist[i];
 #endif
 
 typedef struct rioev_s rioev_t;
