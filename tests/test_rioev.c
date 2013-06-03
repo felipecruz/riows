@@ -11,7 +11,8 @@ void test_rioev_init (void)
 #ifdef __linux__
     ENSURE (1 <= rioev->epollfd);
 #elif __APPLE__
-
+    ENSURE (1 <= rioev->kqfd);
+    ENSURE (0 == rioev->nevents);
 #endif
 }
 
@@ -22,7 +23,7 @@ void test_rioev_add_del_mod (void)
     int r = pipes[0];
     int w = pipes[1];
     rioev_t *rioev = rioev_init ();
-    
+
     ENSURE (0 == rioev_add (rioev, r, RIOEV_IN));
     ENSURE (0 == rioev_del (rioev, r));
 
@@ -30,28 +31,36 @@ void test_rioev_add_del_mod (void)
     ENSURE (0 == rioev_mod (rioev, r, RIOEV_IN));
 
     ENSURE (0 == rioev_del (rioev, r));
+#ifdef __linux__
     ENSURE (-1 == rioev_del (rioev, r));
-    
+#endif
+
     ENSURE (0 == rioev_add (rioev, r, RIOEV_IN));
     ENSURE (0 == rioev_mod (rioev, r, RIOEV_OUT));
 
     ENSURE (0 == rioev_del (rioev, r));
+#ifdef __linux__
     ENSURE (-1 == rioev_mod (rioev, r, 0));
+#endif
 
     ENSURE (0 == rioev_add (rioev, w, RIOEV_OUT));
     ENSURE (0 == rioev_del (rioev, w));
 
     ENSURE (0 == rioev_add (rioev, w, RIOEV_IN));
     ENSURE (0 == rioev_mod (rioev, w, RIOEV_OUT));
-    
+
     ENSURE (0 == rioev_del (rioev, w));
+#ifdef __linux__
     ENSURE (-1 == rioev_del (rioev, w));
-    
+#endif
+
     ENSURE (0 == rioev_add (rioev, w, RIOEV_OUT));
     ENSURE (0 == rioev_mod (rioev, w, RIOEV_IN));
-    
+
     ENSURE (0 == rioev_del (rioev, w));
+#ifdef __linux__
     ENSURE (-1 == rioev_mod (rioev, w, 0));
+#endif
 }
 
 void test_rioev_poll (void)
@@ -61,7 +70,7 @@ void test_rioev_poll (void)
     int r = pipes[0];
     int w = pipes[1];
     rioev_t *rioev = rioev_init ();
-    
+
     ENSURE (0 == rioev_add (rioev, r, RIOEV_IN));
     ENSURE (0 == rioev_poll (rioev, 0));
     ENSURE (0 == rioev_add (rioev, w, RIOEV_OUT));
@@ -75,6 +84,10 @@ void test_rioev_poll (void)
     ENSURE (RIOEV_OUT & rioev->events[0].events);
     ENSURE (RIOEV_IN & rioev->events[1].events);
 #elif __APPLE__
+    ENSURE (w == rioev->eventlist[0].ident);
+    ENSURE (r == rioev->eventlist[1].ident);
+    ENSURE (RIOEV_OUT & rioev->eventlist[0].flags);
+    ENSURE (RIOEV_IN & rioev->eventlist[1].flags);
 #endif
 
 }

@@ -33,6 +33,9 @@ struct rioev_s {
     struct epoll_event events[MAX_EVENTS];
 #elif __APPLE__
     int kqfd;
+    int nevents;
+    struct kevent changelist[MAX_EVENTS];
+    struct kevent eventlist[MAX_EVENTS];
 #endif
 };
 
