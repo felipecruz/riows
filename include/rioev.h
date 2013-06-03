@@ -15,6 +15,16 @@
 #define RIOEV_OUT EPOLLOUT
 #define RIOEV_ERR EPOLLER
 
+#define GET_FD(ev) (int)ev->data.fd
+#define IS_RIOEV_IN(ev) (ev->events & RIOEV_IN)
+#define IS_RIOEV_OUT(ev) (ev->events & RIOEV_OUT)
+
+#define ITERATE(ctx)                                                    \
+    struct epoll_event *ev;                                             \
+    int total = rioev_poll (ctx, 0);                                    \
+    for (int i = 0; i < total; i++) {                                   \
+        ev = &ctx->events[i];                                           \
+
 #elif __APPLE__
 #include <sys/types.h>
 #include <sys/event.h>
@@ -23,6 +33,10 @@
 #define RIOEV_IN EVFILT_READ
 #define RIOEV_OUT EVFILT_WRITE
 #define RIOEV_ERR 0
+
+#define GET_FD(ev) (int)ev->ident
+#define IS_RIOEV_IN(ev) (ev->flags & RIOEV_IN)
+#define IS_RIOEV_OUT(ev) (ev->flags & RIOEV_OUT)
 
 #define ITERATE(ctx)                                                   \
     struct kevent *ev;                                                 \
