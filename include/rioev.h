@@ -35,8 +35,8 @@
 #define RIOEV_ERR 0
 
 #define GET_FD(ev) (int)ev->ident
-#define IS_RIOEV_IN(ev) (ev->flags & RIOEV_IN)
-#define IS_RIOEV_OUT(ev) (ev->flags & RIOEV_OUT)
+#define IS_RIOEV_IN(ev) (ev->filter & RIOEV_IN)
+#define IS_RIOEV_OUT(ev) (ev->filter & RIOEV_OUT)
 
 #define ITERATE(ctx)                                                   \
     struct kevent *ev;                                                 \
