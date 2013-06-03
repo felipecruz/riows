@@ -6,10 +6,11 @@ BUILD=build
 FLAGS=-std=c99
 
 SOURCES=$(SRC)/rioev.c
+MAIN_SOURCES=$(SRC)/rioev.c $(SRC)/riows.c
 TEST_SOURCES=$(TESTS)/thc.c $(TESTS)/test_rioev.c $(TESTS)/suite.c
 
 all: bin_dir
-	$(GCC) -I $(INCLUDE) $(FLAGS) $(SRC)/rioev.c -o $(BUILD)/riows -DDEBUG=0
+	$(GCC) -I $(INCLUDE) $(FLAGS) $(MAIN_SOURCES) -o $(BUILD)/riows -DDEBUG=0
 clean:
 	@rm -rf build/
 bin_dir:
