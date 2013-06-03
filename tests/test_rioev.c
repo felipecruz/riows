@@ -126,10 +126,11 @@ void test_rioev_poll (void)
     write (w, "a", 1);
     ENSURE (2 == rioev_poll (rioev, 0));
 #ifdef __linux__
-    ENSURE (w == rioev->events[0].data.fd);
-    ENSURE (r == rioev->events[1].data.fd);
-    ENSURE (RIOEV_OUT & rioev->events[0].events);
-    ENSURE (RIOEV_IN & rioev->events[1].events);
+    /* position is not guarantee */
+    ENSURE ((r == rioev->events[0].data.fd) ||
+            (w == rioev->events[0].data.fd));
+    ENSURE ((r == rioev->events[1].data.fd) ||
+            (w == rioev->events[1].data.fd));
 #elif __APPLE__
     ENSURE (w == rioev->eventlist[0].ident);
     ENSURE (r == rioev->eventlist[1].ident);
