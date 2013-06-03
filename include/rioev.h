@@ -1,5 +1,6 @@
-#include <stdlib.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <stdlib.h>
 #include <string.h>
 
 #ifndef _RIOEV_H_
@@ -8,7 +9,6 @@
 #define MAX_EVENTS 1024
 
 #ifdef __linux__
-#include <fcntl.h>
 #include <sys/epoll.h>
 
 #define RIOEV_IN EPOLLIN
@@ -16,17 +16,23 @@
 #define RIOEV_ERR EPOLLER
 
 #elif __APPLE__
+#include <sys/types.h>
+#include <sys/event.h>
+#include <sys/time.h>
+
+#define RIOEV_IN EVFILT_READ
+#define RIOEV_OUT EVFILT_WRITE
+#define RIOEV_ERR 0
 #endif
 
 typedef struct rioev_s rioev_t;
 
 struct rioev_s {
-    uint8_t event;
-
 #ifdef __linux__
     int epollfd;
     struct epoll_event events[MAX_EVENTS];
 #elif __APPLE__
+    int kqfd;
 #endif
 };
 

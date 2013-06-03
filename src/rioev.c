@@ -12,7 +12,11 @@ rioev_t* rioev_init (void)
         return NULL;
     }
 #elif __APPLE__
-
+    rioev->kqfd = kqueue ();
+    if (rioev->kqfd == -1) {
+        free (rioev);
+        return NULL;
+    }
 #endif
 
 
