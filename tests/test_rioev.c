@@ -135,12 +135,12 @@ void test_rioev_poll (void)
     ENSURE (r == rioev->eventlist[1].ident);
     ENSURE (RIOEV_OUT & rioev->eventlist[0].flags);
     ENSURE (RIOEV_IN & rioev->eventlist[1].flags);
-    ITERATE(rioev)
-        ENSURE (0 <= ev->ident);
-        if (r == ev->ident)
-            ENSURE (ev->flags & RIOEV_IN);
-        if (w == ev->ident)
-            ENSURE (ev->flags & RIOEV_OUT);
-    }
 #endif
+    ITERATE(rioev)
+        ENSURE (0 <= GET_FD(ev));
+        if (r == GET_FD(ev))
+            ENSURE (IS_RIOEV_IN(ev));
+        if (w == GET_FD(ev))
+            ENSURE (IS_RIOEV_OUT(ev));
+    }
 }
