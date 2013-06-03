@@ -18,6 +18,8 @@ rioev_t* rioev_init (void)
         return NULL;
     }
     rioev->nevents = 0;
+    for (int i = 0; i < MAX_EVENTS; i++)
+        rioev->changelist[i].ident = -1;
 #endif
 
 
@@ -35,8 +37,15 @@ int rioev_add (rioev_t *rioev, int fd, int event)
     rc = epoll_ctl (rioev->epollfd, EPOLL_CTL_ADD, fd, &_ev);
     return rc;
 #elif __APPLE__
-    struct kevent *_ev = &rioev->changelist[rioev->nevents];
-    EV_SET (_ev, fd, event, EV_ADD | EV_ENABLE, 0, NULL, NULL);
+    struct kevent *_ev;
+    for (int i = 0; i < MAX_EVENTS; i++) {
+        _ev = &rioev->changelist[i];
+        if (_ev->ident == -1) {
+            _ev->ident = fd;
+            EV_SET (_ev, fd, event, EV_ADD | EV_ENABLE, 0, 0, NULL);
+            break;
+        }
+    }
     rioev->nevents++;
     return 0;
 #endif
@@ -51,8 +60,15 @@ int rioev_del (rioev_t *rioev, int fd)
     rc = epoll_ctl (rioev->epollfd, EPOLL_CTL_DEL, fd, &_ev);
     return rc;
 #elif __APPLE__
-    struct kevent *_ev = &rioev->changelist[rioev->nevents];
-    EV_SET (_ev, fd, NULL, EV_DELETE, 0, NULL, NULL);
+    struct kevent *_ev;
+    for (int i = 0; i < MAX_EVENTS; i++) {
+        _ev = &rioev->changelist[i];
+        if (_ev->ident == fd) {
+            EV_SET (_ev, fd, _ev->filter, EV_DELETE, 0, 0, NULL);
+            _ev->ident = -1;
+            break;
+        }
+    }
     if (rioev->nevents > 0)
         rioev->nevents--;
     return 0;
@@ -71,8 +87,14 @@ int rioev_mod (rioev_t *rioev, int fd, int event)
     rc = epoll_ctl (rioev->epollfd, EPOLL_CTL_MOD, fd, &_ev);
     return rc;
 #elif __APPLE__
-    struct kevent *_ev = &rioev->changelist[rioev->nevents];
-    EV_SET (_ev, fd, event, EV_ADD | EV_ENABLE, 0, NULL, NULL);
+    struct kevent *_ev;
+    for (int i = 0; i < MAX_EVENTS; i++) {
+        _ev = &rioev->changelist[i];
+        if (_ev->ident == fd) {
+            EV_SET (_ev, fd, event, EV_ADD | EV_ENABLE, 0, 0, NULL);
+            break;
+        }
+    }
     return 0;
 #endif
 }
