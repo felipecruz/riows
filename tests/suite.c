@@ -13,10 +13,10 @@ int main (int argc, const char *argv[])
 #endif
 
     if (_rioev) {
-        thc_addtest (test_rioev_init); 
-        thc_addtest (test_rioev_add_del_mod); 
-        thc_addtest (test_rioev_poll); 
-    } 
+        thc_addtest (test_rioev_init_destroy);
+        thc_addtest (test_rioev_add_del_mod);
+        thc_addtest (test_rioev_poll);
+    }
 
     return thc_run (THC_VERBOSE);
 }

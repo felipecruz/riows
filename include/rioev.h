@@ -2,6 +2,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #ifndef _RIOEV_H_
 #define _RIOEV_H_
@@ -64,4 +65,5 @@ int rioev_add (rioev_t *rioev, int fd, int event);
 int rioev_del (rioev_t *rioev, int fd);
 int rioev_mod (rioev_t *rioev, int fd, int event);
 int rioev_poll (rioev_t *rioev, int timeout);
+void rioev_destroy (rioev_t **rioev);
 #endif
