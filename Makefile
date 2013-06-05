@@ -3,7 +3,15 @@ SRC=src
 TESTS=tests
 INCLUDE=include
 BUILD=build
-FLAGS=-std=c99
+FLAGS=
+
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+    FLAGS += -std=gnu99
+endif
+ifeq ($(UNAME_S),Darwin)
+    CCFLAGS += -std=c99
+endif
 
 SOURCES=$(SRC)/rioev.c
 MAIN_SOURCES=$(SRC)/rioev.c $(SRC)/riows.c
