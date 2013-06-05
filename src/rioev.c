@@ -109,3 +109,14 @@ int rioev_poll (rioev_t *rioev, int timeout)
     return rc;
 #endif
 }
+
+void rioev_destroy (rioev_t **rioev)
+{
+    rioev_t *_rioev = *rioev;
+#ifdef __linux__
+#elif __APPLE__
+    close (_rioev->kqfd);
+    free (_rioev);
+    *rioev = NULL;
+#endif
+}

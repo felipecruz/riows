@@ -3,7 +3,7 @@
 #include "thc.h"
 #include "test_rioev.h"
 
-void test_rioev_init (void)
+void test_rioev_init_destroy (void)
 {
     rioev_t *rioev = rioev_init ();
 
@@ -14,6 +14,10 @@ void test_rioev_init (void)
     ENSURE (1 <= rioev->kqfd);
     ENSURE (0 == rioev->nevents);
 #endif
+
+    rioev_destroy (&rioev);
+
+    ENSURE (NULL == rioev);
 }
 
 void test_rioev_add_del_mod (void)
@@ -108,6 +112,9 @@ void test_rioev_add_del_mod (void)
     ENSURE (w3 == rioev->changelist[2].ident);
     ENSURE (w3 == rioev->changelist[3].ident);
 #endif
+
+    /* avoid leak */
+    rioev_destroy (&rioev);
 }
 
 void test_rioev_poll (void)
@@ -145,4 +152,7 @@ void test_rioev_poll (void)
         if (w == GET_FD(ev))
             ENSURE (IS_RIOEV_OUT(ev));
     }
+
+    /* avoid leak */
+    rioev_destroy (&rioev);
 }
