@@ -3,8 +3,6 @@
 rioev_t* rioev_init (void)
 {
     rioev_t *rioev = malloc (sizeof (rioev_t));
-
-
 #ifdef __linux__
     rioev->epollfd = epoll_create (MAX_EVENTS);
     if (rioev->epollfd == -1) {
@@ -21,8 +19,6 @@ rioev_t* rioev_init (void)
     for (int i = 0; i < MAX_EVENTS; i++)
         rioev->changelist[i].ident = -1;
 #endif
-
-
     return rioev;
 }
 
@@ -73,7 +69,6 @@ int rioev_del (rioev_t *rioev, int fd)
         rioev->nevents--;
     return 0;
 #endif
-
 }
 
 int rioev_mod (rioev_t *rioev, int fd, int event)
@@ -113,5 +108,4 @@ int rioev_poll (rioev_t *rioev, int timeout)
                               rioev->eventlist, MAX_EVENTS, &ts);
     return rc;
 #endif
-
 }
