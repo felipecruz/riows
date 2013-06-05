@@ -10,7 +10,7 @@ ifeq ($(UNAME_S),Linux)
     FLAGS += -std=gnu99
 endif
 ifeq ($(UNAME_S),Darwin)
-    CCFLAGS += -std=c99
+    FLAGS += -std=c99
 endif
 
 SOURCES=$(SRC)/rioev.c
