@@ -45,6 +45,7 @@
     for (int i = 0; i < total; i++) {                                  \
         ev = &ctx->eventlist[i];
 #endif
+#define END_ITERATE }
 
 typedef struct rioev_s rioev_t;
 

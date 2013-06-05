@@ -23,6 +23,5 @@ And a `ITERATE` macro facility.
             assert (IS_RIOEV_IN(ev));
         if (w == GET_FD(ev))
             assert (IS_RIOEV_OUT(ev));
-    }
-
+    ENDITERATE
 ```
