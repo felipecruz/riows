@@ -4,6 +4,7 @@
 
 #include <fcntl.h>
 #include <rioev.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
