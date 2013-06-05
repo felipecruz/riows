@@ -24,6 +24,12 @@ clean:
 bin_dir:
 	@mkdir -p $(BUILD)
 
+debug: bin_dir
+	$(GCC) -I $(INCLUDE) -g $(FLAGS) $(MAIN_SOURCES) -o $(BUILD)/riows -DDEBUG=1
+leak:
+	$(GCC) -I $(INCLUDE) -g $(FLAGS) $(MAIN_SOURCES) -o $(BUILD)/riows -DDEBUG=1 && sudo valgrind --leak-check=full build/riows
+
+
 ifneq ($(filter$(MAKECMDGOALS),with_args), "")
   RUN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
   $(eval $(RUN_ARGS):;@:)
