@@ -2,6 +2,16 @@
 
 static volatile int interrupted = 0;
 
+int rnetwork_loop (rio_worker_t *worker)
+{
+    printf ("Worker %s running\n", worker->name);
+    sleep (1);
+    rioev_destroy (&worker->rioev);
+    close (worker->fd);
+    free (worker);
+    return 0;
+}
+
 void interrupt (int signal)
 {
     interrupted = 1;
@@ -68,6 +78,7 @@ int main (int argc, char **argv)
 {
     int status;
     int workers = 1;
+    char *working_dir_name;
     pid_t pid;
 
     printf (" _ __  _   ___  \n");
@@ -75,15 +86,25 @@ int main (int argc, char **argv)
     printf ("| |   | || (_) |\n");
     printf ("|_|   |_| \\___/ \n");
 
-    rio_worker_t *worker = malloc (sizeof (rio_worker_t));
-    worker->fd = socket_bind (80);
-    worker->rioev = rioev_init ();
-    sprintf(worker->name, "WORKER:%d", workers);
 
-    printf ("Running %s fd:%d port:%d\n", worker->name, worker->fd, 80);
-    printf ("Working dir: %s\n", getcwd (NULL, 0));
+    if ((pid = fork ()) == -1) {
+        perror ("Error Forking");
+        exit (EXIT_FAILURE);
+    }
 
+    if (pid == 0) {
+        rio_worker_t *worker = malloc (sizeof (rio_worker_t));
+        worker->fd = socket_bind (80);
+        worker->rioev = rioev_init ();
+        sprintf(worker->name, "WORKER:%d", workers);
+        rnetwork_loop (worker);
+        exit (EXIT_SUCCESS);
+    }
+
+    working_dir_name = getcwd (NULL, 0);
     setup_termination_signals ();
+
+    printf ("Working dir: %s\n", working_dir_name);
 
     while (1) {
         sleep (0.1);
@@ -93,6 +114,6 @@ int main (int argc, char **argv)
         }
     }
 
-    close (worker->fd);
+    free (working_dir_name);
     exit(EXIT_SUCCESS);
 }
