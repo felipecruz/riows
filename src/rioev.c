@@ -114,9 +114,10 @@ void rioev_destroy (rioev_t **rioev)
 {
     rioev_t *_rioev = *rioev;
 #ifdef __linux__
+    close (_rioev->epollfd);
 #elif __APPLE__
     close (_rioev->kqfd);
+#endif
     free (_rioev);
     *rioev = NULL;
-#endif
 }
