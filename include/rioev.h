@@ -25,6 +25,7 @@
     int total = rioev_poll (ctx, 0);                                    \
     for (int i = 0; i < total; i++) {                                   \
         ev = &ctx->events[i];                                           \
+#define END_ITERATE }
 
 #elif __APPLE__
 #include <sys/types.h>
@@ -45,6 +46,7 @@
     for (int i = 0; i < total; i++) {                                  \
         ev = &ctx->eventlist[i];
 #endif
+#define END_ITERATE }
 
 typedef struct rioev_s rioev_t;
 
