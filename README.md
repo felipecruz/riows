@@ -18,10 +18,15 @@ And a `ITERATE` macro facility.
 
     write (w, "a", 1);
 
-    ITERATE(rioev)
-        if (r == GET_FD(ev))
-            assert (IS_RIOEV_IN(ev));
-        if (w == GET_FD(ev))
-            assert (IS_RIOEV_OUT(ev));
-    ENDITERATE
+    ITERATE(rioev, 1)
+        EVENT_LOOP(rioev)
+        {
+            ENSURE (0 < GET_FD(ev));
+            if (r == GET_FD(ev))
+                ENSURE (IS_RIOEV_IN(ev));
+            if (w == GET_FD(ev))
+                ENSURE (IS_RIOEV_OUT(ev));
+        END_LOOP
+        do_other_stuff_before_another_poll ();
+    END_ITERATE
 ```
