@@ -13,8 +13,8 @@ ifeq ($(UNAME_S),Darwin)
     FLAGS += -std=c99
 endif
 
-SOURCES=$(SRC)/rioev.c
-MAIN_SOURCES=$(SRC)/rioev.c $(SRC)/riows.c
+SOURCES=$(SRC)/rioev.c $(SRC)/rnetwork.c
+MAIN_SOURCES=$(SOURCES) $(SRC)/riows.c
 TEST_SOURCES=$(TESTS)/thc.c $(TESTS)/test_rioev.c $(TESTS)/suite.c
 
 all: bin_dir

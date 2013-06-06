@@ -20,11 +20,16 @@
 #define IS_RIOEV_IN(ev) (ev->events & RIOEV_IN)
 #define IS_RIOEV_OUT(ev) (ev->events & RIOEV_OUT)
 
-#define ITERATE(ctx)                                                    \
-    struct epoll_event *ev;                                             \
-    int total = rioev_poll (ctx, 0);                                    \
-    for (int i = 0; i < total; i++) {                                   \
-        ev = &ctx->events[i];                                           \
+#define ITERATE(ctx, timeout)                                           \
+    while (1) {                                                         \
+        struct epoll_event *ev;                                         \
+        int total = rioev_poll (worker->rioev, timeout);                \
+
+#define EVENT_LOOP(ctx)                                                 \
+        int i = 0;                                                      \
+        for (ev = &ctx->events[i];                                      \
+             i < total;                                                 \
+             ev = &ctx->events[i])                                      \
 
 #elif __APPLE__
 #include <sys/types.h>
@@ -39,12 +44,14 @@
 #define IS_RIOEV_IN(ev) (ev->filter & RIOEV_IN)
 #define IS_RIOEV_OUT(ev) (ev->filter & RIOEV_OUT)
 
-#define ITERATE(ctx)                                                   \
-    struct kevent *ev;                                                 \
-    int total = rioev_poll (ctx, 0);                                   \
-    for (int i = 0; i < total; i++) {                                  \
-        ev = &ctx->eventlist[i];
+#define ITERATE(ctx, timeout)                                                       \
+    while (1) {                                                            \
+        struct kevent *ev;                                                 \
+        int total = rioev_poll (ctx, timeout);                                   \
+        for (int i = 0; i < total; i++) {                                  \
+            ev = &ctx->eventlist[i];
 #endif
+#define END_LOOP i++; }
 #define END_ITERATE }
 
 typedef struct rioev_s rioev_t;
