@@ -145,13 +145,17 @@ void test_rioev_poll (void)
     ENSURE ((r == rioev->eventlist[1].ident) ||
             (w == rioev->eventlist[1].ident));
 #endif
-    ITERATE(rioev)
-        ENSURE (0 < GET_FD(ev));
-        if (r == GET_FD(ev))
-            ENSURE (IS_RIOEV_IN(ev));
-        if (w == GET_FD(ev))
-            ENSURE (IS_RIOEV_OUT(ev));
-    }
+    ITERATE(rioev, 1)
+        EVENT_LOOP(rioev)
+        {
+            ENSURE (0 < GET_FD(ev));
+            if (r == GET_FD(ev))
+                ENSURE (IS_RIOEV_IN(ev));
+            if (w == GET_FD(ev))
+                ENSURE (IS_RIOEV_OUT(ev));
+        END_LOOP
+        break;
+    END_ITERATE
 
     /* avoid leak */
     rioev_destroy (&rioev);
