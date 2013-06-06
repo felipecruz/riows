@@ -44,13 +44,19 @@
 #define IS_RIOEV_IN(ev) (ev->filter & RIOEV_IN)
 #define IS_RIOEV_OUT(ev) (ev->filter & RIOEV_OUT)
 
-#define ITERATE(ctx, timeout)                                                       \
+#define ITERATE(ctx, timeout)                                              \
     while (1) {                                                            \
         struct kevent *ev;                                                 \
-        int total = rioev_poll (ctx, timeout);                                   \
-        for (int i = 0; i < total; i++) {                                  \
-            ev = &ctx->eventlist[i];
+        int total = rioev_poll (ctx, timeout);                             \
+
+#define EVENT_LOOP(ctx)                                                    \
+        int i = 0;                                                         \
+        for (ev = &ctx->changelist[i];                                     \
+             i < total;                                                    \
+             ev = &ctx->changelist[i])                                     \
+
 #endif
+
 #define END_LOOP i++; }
 #define END_ITERATE }
 
