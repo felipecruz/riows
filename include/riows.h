@@ -2,6 +2,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+#include <errno.h>
 #include <fcntl.h>
 #include <rioev.h>
 #include <signal.h>
