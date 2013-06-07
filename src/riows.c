@@ -1,5 +1,6 @@
 #include <riows.h>
 #include <rnetwork.h>
+#include <rutils.h>
 
 static volatile int interrupted = 0;
 
@@ -18,10 +19,8 @@ void setup_termination_signals ()
     sa.sa_flags = SA_RESTART;
 
     rc = sigaction (SIGINT, &sa, NULL);
-    if (rc == -1) {
-        perror ("Error installing termination signal actions");
-        exit (EXIT_FAILURE);
-    }
+    if (rc == -1)
+        handle_error ("Error installing termination signal actions");
 }
 
 int main (int argc, char **argv)
@@ -37,10 +36,8 @@ int main (int argc, char **argv)
     printf ("|_|   |_| \\___/ \n");
 
 
-    if ((pid = fork ()) == -1) {
-        perror ("Error Forking");
-        exit (EXIT_FAILURE);
-    }
+    if ((pid = fork ()) == -1)
+        handle_error ("Error Forking");
 
     rio_worker_t *worker = malloc (sizeof (rio_worker_t));
 
@@ -52,12 +49,12 @@ int main (int argc, char **argv)
     working_dir_name = getcwd (NULL, 0);
     setup_termination_signals ();
 
-    printf ("Working dir: %s\n", working_dir_name);
+    log_info ("Working dir: %s\n", working_dir_name);
 
     while (1) {
         sleep (0.1);
         if (interrupted) {
-            printf ("Program interrupted...\nExiting\n");
+            log_info ("Program interrupted...\nExiting\n");
             break;
         }
     }

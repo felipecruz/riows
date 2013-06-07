@@ -1,4 +1,5 @@
 #include <rnetwork.h>
+#include <rutils.h>
 
 int set_nonblock (int fd)
 {
@@ -8,11 +9,11 @@ int set_nonblock (int fd)
 int accept_client (int fd)
 {
     int client_fd;
+    size_t len;
     struct sockaddr_in client;
 
-    client_fd = accept (fd, NULL, 0);
-
-    printf ("New Client %d\n", client_fd);
+    client_fd = accept (fd, (struct sockaddr*)&client, (socklen_t*) &len);
+    log_info ("New Client fd:%d ip:%s\n", client_fd, inet_ntoa (client.sin_addr));
 
     return client_fd;
 }
@@ -23,21 +24,15 @@ int socket_bind (int port)
     int arg = 1;
     struct sockaddr_in address;
 
-    if ((socket_fd = socket (AF_INET, SOCK_STREAM, 0)) == -1) {
-        perror ("Error creating socket");
-        exit (EXIT_FAILURE);
-    }
+    if ((socket_fd = socket (AF_INET, SOCK_STREAM, 0)) == -1)
+        handle_error ("Error creating socket");
 
-    if (set_nonblock (socket_fd) == -1) {
-        perror ("Error setting socket non-blocking");
-        exit (EXIT_FAILURE);
-    }
+    if (set_nonblock (socket_fd) == -1)
+        handle_error ("Error setting socket non-blocking");
 
     if (setsockopt (socket_fd, SOL_SOCKET, SO_REUSEADDR, &arg,
-                                                         sizeof (arg)) == -1) {
-        perror ("Error setting SOL_REUSEADDR");
-        exit (EXIT_FAILURE);
-    }
+                                                         sizeof (arg)) == -1)
+        handle_error ("Error setting SOL_REUSEADDR");
 
     memset (&address, 0, sizeof (struct sockaddr_in));
     address.sin_family = AF_INET;
@@ -45,15 +40,11 @@ int socket_bind (int port)
     address.sin_addr.s_addr = inet_addr ("0.0.0.0");
 
     if (bind (socket_fd, (const struct sockaddr *)&address,
-                         sizeof (struct sockaddr_in)) == -1) {
-        perror ("Error on socket binding");
-        exit (EXIT_FAILURE);
-    }
+                         sizeof (struct sockaddr_in)) == -1)
+        handle_error ("Error on socket binding");
 
-    if (listen (socket_fd, MAX_EVENTS) == -1) {
-        perror ("Error calling listen on socket");
-        exit (EXIT_FAILURE);
-    }
+    if (listen (socket_fd, MAX_EVENTS) == -1)
+        handle_error ("Error calling listen on socket");
 
     return socket_fd;
 }
@@ -68,7 +59,7 @@ int rnetwork_loop (rio_worker_t *worker)
     sprintf(worker->name, "WORKER:%d", worker->fd);
     rioev_add (worker->rioev, worker->fd, RIOEV_IN);
 
-    printf ("Worker %s running\n", worker->name);
+    log_info ("Worker %s running\n", worker->name);
 
     /* riows event lopp */
 
@@ -78,15 +69,14 @@ int rnetwork_loop (rio_worker_t *worker)
             if (worker->fd == GET_FD(ev)) {
                 if (IS_RIOEV_IN(ev)) {
                     new_client = accept_client (worker->fd);
-                    printf ("Client %d Connected\n", new_client);
                     close (new_client);
                 }
             }
         END_LOOP
-        printf (".\n");
+        log_info (".\n");
     END_ITERATE
 
-    printf ("Finishing %s", worker->name);
+    log_info ("Finishing %s", worker->name);
     rioev_destroy (&worker->rioev);
     close (worker->fd);
     free (worker);
