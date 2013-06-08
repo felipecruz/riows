@@ -20,5 +20,10 @@ typedef struct {
     rioev_t *rioev;
 } rio_worker_t;
 
+typedef struct {
+    int fd;
+    int state;
+} rio_client_t;
+
 int main (int argc, char **argv);
 #endif
