@@ -39,10 +39,10 @@ endif
 
 with_args=test,debug,leak
 
-ta: bin_dir 
-	$(GCC) $(INCLUDES) $(SOURCES) $(TEST_SOURCES) $(FLAGS) -DALL=1 -o $(BUILD)/ta  && $(BUILD)/ta
-test: bin_dir 
-	$(GCC) $(INCLUDES) $(SOURCES) $(TEST_SOURCES) $(FLAGS) -Dt$(RUN_ARGS)=1 -o $(BUILD)/$(RUN_ARGS)  && $(BUILD)/$(RUN_ARGS)
+ta: bin_dir http_parser.o cws.o cdats.o
+	$(GCC) $(INCLUDES) $(DEPS) $(SOURCES) $(TEST_SOURCES) $(FLAGS) -DALL=1 -o $(BUILD)/ta  && $(BUILD)/ta
+test: bin_dir http_parser.o cws.o cdats.o
+	$(GCC) $(INCLUDES) $(DEPS) $(SOURCES) $(TEST_SOURCES) $(FLAGS) -Dt$(RUN_ARGS)=1 -o $(BUILD)/$(RUN_ARGS)  && $(BUILD)/$(RUN_ARGS)
 
 HTTP_PARSER_DIR=vendor/http-parser
 CWS_DIR=vendor/cws
