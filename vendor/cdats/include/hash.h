@@ -8,7 +8,7 @@ typedef struct hash_table hash;
 typedef struct hash_elem_s hash_elem_t;
 
 struct hash_elem_s {
-    uint8_t *key;
+    int key;
     void *value;
     size_t value_len;
     hash_elem_t *next;
@@ -25,7 +25,7 @@ struct hash_table {
 
 hash *hash_init (size_t);
 void hash_destroy (hash **hash);
-void hash_put (hash *table, uint8_t *key, void *data, size_t length);
-hash_elem_t *hash_get (hash *table, uint8_t *key);
-void hash_del (hash *table, uint8_t *key);
+void hash_put (hash *table, int key, void *data, size_t length);
+hash_elem_t *hash_get (hash *table, int key);
+void hash_del (hash *table, int key);
 #endif

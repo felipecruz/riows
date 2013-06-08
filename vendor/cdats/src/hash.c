@@ -8,15 +8,9 @@
 
 /* sdbm hash function */
 
-unsigned long hash_val (uint8_t *str)
+int hash_val (int key)
 {
-    unsigned long _hash = 0;
-    int c;
-
-    while (c = *str++)
-        _hash = c + (_hash << 6) + (_hash << 16) - _hash;
-
-    return _hash;
+    return key;
 }
 
 hash *hash_init (size_t length)
@@ -63,7 +57,7 @@ void hash_destroy (hash **table)
     *table = NULL;
 }
 
-void hash_put (hash *table, uint8_t *key, void *data, size_t length)
+void hash_put (hash *table, int key, void *data, size_t length)
 {
     if (table == NULL || key == NULL || data == NULL || length == 0)
         return;
@@ -83,7 +77,7 @@ void hash_put (hash *table, uint8_t *key, void *data, size_t length)
         hash_elem_t *prev;
         hash_elem_t *linked = table->elements[index];
         while (linked) {
-            if (match(linked->key, key, strlen (key))) { /* element found */
+            if (linked->key == key) { /* element found */
                 free (linked->value);
                 linked->value = data;
                 linked->value_len = length;
@@ -102,7 +96,7 @@ void hash_put (hash *table, uint8_t *key, void *data, size_t length)
     }
 }
 
-hash_elem_t *hash_get (hash *table, uint8_t *key)
+hash_elem_t *hash_get (hash *table, int key)
 {
     if (table == NULL || key == NULL)
         return NULL;
@@ -111,11 +105,11 @@ hash_elem_t *hash_get (hash *table, uint8_t *key)
     size_t index = _key % table->capacity;
     hash_elem_t *el = table->elements[index];
 
-    if (el != NULL && match(el->key, key, strlen (key)))
+    if (el != NULL && el->key == key)
         return el;
 
     while (el) {
-        if (match(el->key, key, strlen (key)))
+        if (el->key == key)
             return el;
         el = el->next;
     }
@@ -123,7 +117,7 @@ hash_elem_t *hash_get (hash *table, uint8_t *key)
     return NULL;
 }
 
-void hash_del (hash *table, uint8_t *key)
+void hash_del (hash *table, int key)
 {
     if (table == NULL || key == NULL)
         return;
@@ -136,7 +130,7 @@ void hash_del (hash *table, uint8_t *key)
     if (el == NULL)
         return;
 
-    if (el != NULL && match(el->key, key, strlen (key))) {
+    if (el != NULL && el->key == key) {
         table->elements[index] = el->next;
         free (el->value);
         free (el);
@@ -144,7 +138,7 @@ void hash_del (hash *table, uint8_t *key)
     }
 
     while (el) {
-        if (match(el->key, key, strlen (key))) {
+        if (el->key == key) {
             prev->next = el->next;
             free (el->value);
             free (el);
