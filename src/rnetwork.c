@@ -6,16 +6,19 @@ int set_nonblock (int fd)
     return fcntl (fd, F_SETFL, O_NONBLOCK);
 }
 
-int accept_client (int fd)
+int accept_client (int fd, rio_client_t *rio_client)
 {
-    int client_fd;
     size_t len;
     struct sockaddr_in client;
 
-    client_fd = accept (fd, (struct sockaddr*)&client, (socklen_t*) &len);
-    log_info ("New Client fd:%d ip:%s\n", client_fd, inet_ntoa (client.sin_addr));
+    rio_client->fd = accept (fd, (struct sockaddr*)&client, (socklen_t*) &len);
 
-    return client_fd;
+    if (set_nonblock (rio_client->fd) == -1)
+        handle_error ("Error setting socket non-blocking");
+
+    log_info ("New Client fd:%d ip:%s\n", rio_client->fd, inet_ntoa (client.sin_addr));
+
+    return rio_client->fd;
 }
 
 int socket_bind (int port)
@@ -49,11 +52,20 @@ int socket_bind (int port)
     return socket_fd;
 }
 
+void handle_request (rio_worker_t *worker, rio_client_t *client)
+{
+    log_info ("Client fd:%d - Requested %s", client->fd, "");
+
+    rioev_del (worker->rioev, client->fd);
+    close (client->fd);
+}
+
 int rnetwork_loop (rio_worker_t *worker)
 {
     int total;
     int new_client;
     hash *clients = hash_init (MAX_EVENTS + 100);
+    hash_elem_t *el;
 
     worker->fd = socket_bind (80);
     worker->rioev = rioev_init ();
@@ -65,13 +77,25 @@ int rnetwork_loop (rio_worker_t *worker)
     /* riows event lopp */
 
     ITERATE(worker->rioev, 1000)
+        rio_client_t *new_client;
+        log_info ("Events: %d\n", total);
         EVENT_LOOP(worker->rioev)
         {
+            log_info ("Worker fd:%d event fd:%d\n", worker->fd, GET_FD(ev));
             if (worker->fd == GET_FD(ev)) {
                 if (IS_RIOEV_IN(ev)) {
-                    new_client = accept_client (worker->fd);
-                    close (new_client);
+                    new_client = malloc (sizeof (rio_client_t));
+                    if (accept_client (worker->fd, new_client) == -1)
+                        log_err ("Error Accepting Client");
+                    else {
+                        hash_put (clients, new_client->fd , new_client,
+                                  sizeof (new_client));
+                        rioev_add (worker->rioev, new_client->fd, RIOEV_IN);
+                    }
                 }
+            } else {
+                el = hash_get (clients, GET_FD(ev));
+                handle_request (worker, el->value);
             }
         END_LOOP
         log_info (".\n");
