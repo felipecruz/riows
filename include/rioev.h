@@ -7,7 +7,7 @@
 #ifndef _RIOEV_H_
 #define _RIOEV_H_
 
-#define MAX_EVENTS 1024
+#define MAX_EVENTS 1049
 
 #ifdef __linux__
 #include <sys/epoll.h>
