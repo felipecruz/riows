@@ -51,9 +51,9 @@
 
 #define EVENT_LOOP(ctx)                                                    \
         int i = 0;                                                         \
-        for (ev = &ctx->changelist[i];                                     \
+        for (ev = &ctx->eventlist[i];                                     \
              i < total;                                                    \
-             ev = &ctx->changelist[i])                                     \
+             ev = &ctx->eventlist[i])                                     \
 
 #endif
 
