@@ -53,6 +53,7 @@ int rnetwork_loop (rio_worker_t *worker)
 {
     int total;
     int new_client;
+    hash *clients = hash_init (MAX_EVENTS + 100);
 
     worker->fd = socket_bind (80);
     worker->rioev = rioev_init ();
@@ -77,6 +78,8 @@ int rnetwork_loop (rio_worker_t *worker)
     END_ITERATE
 
     log_info ("Finishing %s", worker->name);
+
+    hash_destroy (&clients);
     rioev_destroy (&worker->rioev);
     close (worker->fd);
     free (worker);
