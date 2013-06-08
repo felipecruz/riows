@@ -1,9 +1,9 @@
 GCC=gcc
 SRC=src
 TESTS=tests
-INCLUDES=-Iinclude/ -Ivendor/http-parser -Ivendor/cws/src
+INCLUDES=-Iinclude/ -Ivendor/http-parser -Ivendor/cws/src -Ivendor/cdats/include
 BUILD=build
-FLAGS=
+FLAGS=-lcrypto
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
@@ -16,10 +16,11 @@ endif
 SOURCES=$(SRC)/rioev.c $(SRC)/rnetwork.c
 MAIN_SOURCES=$(SOURCES) $(SRC)/riows.c
 TEST_SOURCES=$(TESTS)/thc.c $(TESTS)/test_rioev.c $(TESTS)/suite.c
-DEPS=vendor/http-parser/http_parser.o vendor/cws/b64.o vendor/cws/cws.o
+DEPS=vendor/http-parser/http_parser.o vendor/cws/b64.o vendor/cws/cws.o \
+	 vendor/cdats/hash.o
 
-all: bin_dir http_parser.o cws.o
-	$(GCC) $(INCLUDES) $(FLAGS) $(MAIN_SOURCES) -o $(BUILD)/riows -DDEBUG=0
+all: bin_dir http_parser.o cws.o cdats.o
+	$(GCC) $(INCLUDES) $(FLAGS) $(DEPS) $(MAIN_SOURCES) -o $(BUILD)/riows -DDEBUG=0
 clean:
 	@rm -rf build/
 bin_dir:
@@ -45,9 +46,13 @@ test: bin_dir
 
 HTTP_PARSER_DIR=vendor/http-parser
 CWS_DIR=vendor/cws
+CDATS_DIR=vendor/cdats
 
 cws.o:
 	cd $(CWS_DIR); $(MAKE)
 
 http_parser.o:
 	cd $(HTTP_PARSER_DIR); $(MAKE) http_parser.o
+
+cdats.o:
+	cd $(CDATS_DIR); $(MAKE)

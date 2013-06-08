@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <cws.h>
-#include <http_parser.h>
 
 #ifndef _RIOEV_H_
 #define _RIOEV_H_
