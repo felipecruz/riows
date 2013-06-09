@@ -1,6 +1,11 @@
 #include <rnetwork.h>
 #include <rutils.h>
 
+char *default_response =
+    "HTTP/1.1 200 OK\r\nContent-Type: text/html;"
+    "charset=utf-8\r\nContent-Length: 50\r\n\n"
+    "<!doctype html><body><h1>riows</h1></body></html>";
+
 int set_nonblock (int fd)
 {
     return fcntl (fd, F_SETFL, O_NONBLOCK);
@@ -16,7 +21,7 @@ int accept_client (int fd, rio_client_t *rio_client)
     if (set_nonblock (rio_client->fd) == -1)
         handle_error ("Error setting socket non-blocking");
 
-    log_info ("New Client fd:%d ip:%s\n", rio_client->fd, inet_ntoa (client.sin_addr));
+    log_debug ("New Client fd:%d ip:%s\n", rio_client->fd, inet_ntoa (client.sin_addr));
 
     return rio_client->fd;
 }
@@ -54,7 +59,21 @@ int socket_bind (int port)
 
 void handle_request (rio_worker_t *worker, rio_client_t *client)
 {
-    log_info ("Client fd:%d - Requested %s", client->fd, "");
+    int rc;
+    char buffer[8192];
+
+    rc = recv (client->fd, buffer, 8192, MSG_DONTWAIT);
+    if (rc == -1) {
+        log_err ("Error Reading");
+        exit (-1);
+    }
+    log_debug ("Client fd:%d - Request - size:%d\n %s\n", client->fd, rc, buffer);
+
+    rc = send (client->fd, default_response, strlen (default_response), MSG_DONTWAIT);
+    if (rc == -1) {
+        log_err ("Error Writing");
+        exit (-1);
+    }
 
     rioev_del (worker->rioev, client->fd);
     close (client->fd);
@@ -76,12 +95,12 @@ int rnetwork_loop (rio_worker_t *worker)
 
     /* riows event lopp */
 
-    ITERATE(worker->rioev, 1000)
+    ITERATE(worker->rioev, 200)
         rio_client_t *new_client;
-        log_info ("Events: %d\n", total);
+        log_debug ("Events: %d\n", total);
         EVENT_LOOP(worker->rioev)
         {
-            log_info ("Worker fd:%d event fd:%d\n", worker->fd, GET_FD(ev));
+            log_debug ("Worker fd:%d event fd:%d\n", worker->fd, GET_FD(ev));
             if (worker->fd == GET_FD(ev)) {
                 if (IS_RIOEV_IN(ev)) {
                     new_client = malloc (sizeof (rio_client_t));
@@ -98,7 +117,6 @@ int rnetwork_loop (rio_worker_t *worker)
                 handle_request (worker, el->value);
             }
         END_LOOP
-        log_info (".\n");
     END_ITERATE
 
     log_info ("Finishing %s", worker->name);
