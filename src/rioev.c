@@ -56,15 +56,21 @@ int rioev_del (rioev_t *rioev, int fd)
     rc = epoll_ctl (rioev->epollfd, EPOLL_CTL_DEL, fd, &_ev);
     return rc;
 #elif __APPLE__
+    int removed_position;
     struct kevent *_ev;
     for (int i = 0; i < MAX_EVENTS; i++) {
         _ev = &rioev->changelist[i];
         if (_ev->ident == fd) {
             EV_SET (_ev, fd, _ev->filter, EV_DELETE, 0, 0, NULL);
             _ev->ident = -1;
+            removed_position = i;
             break;
         }
     }
+    /* fill empty spot */
+    rioev->changelist[removed_position] = rioev->changelist[rioev->nevents - 1];
+    /* empty last element, moved to the previous empty spot */
+    rioev->changelist[rioev->nevents - 1].ident = -1;
     if (rioev->nevents > 0)
         rioev->nevents--;
     return 0;

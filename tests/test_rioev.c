@@ -98,18 +98,18 @@ void test_rioev_add_del_mod (void)
     ENSURE (w3 == rioev->changelist[2].ident);
 
     ENSURE (0 == rioev_del (rioev, w2));
-    ENSURE (-1 == rioev->changelist[1].ident);
+    ENSURE (w3 == rioev->changelist[1].ident);
     ENSURE (0 == rioev_del (rioev, w1));
-    ENSURE (-1 == rioev->changelist[0].ident);
+    ENSURE (w3 == rioev->changelist[0].ident);
 
     ENSURE (0 == rioev_add (rioev, w2, RIOEV_IN));
-    ENSURE (w2 == rioev->changelist[0].ident);
+    ENSURE (w2 == rioev->changelist[1].ident);
     ENSURE (0 == rioev_add (rioev, w1, RIOEV_IN));
-    ENSURE (w1 == rioev->changelist[1].ident);
+    ENSURE (w1 == rioev->changelist[2].ident);
     ENSURE (0 == rioev_add (rioev, w3, RIOEV_IN));
 
     /* TODO verify returned events if we add same event twice */
-    ENSURE (w3 == rioev->changelist[2].ident);
+    ENSURE (w3 == rioev->changelist[0].ident);
     ENSURE (w3 == rioev->changelist[3].ident);
 #endif
 
