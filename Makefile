@@ -3,7 +3,7 @@ SRC=src
 TESTS=tests
 INCLUDES=-Iinclude/ -Ivendor/http-parser -Ivendor/cws/src -Ivendor/cdats/include
 BUILD=build
-FLAGS=-lcrypto
+FLAGS=-lcrypto -O2
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
@@ -20,7 +20,7 @@ DEPS=vendor/http-parser/http_parser.o vendor/cws/b64.o vendor/cws/cws.o \
 	 vendor/cdats/hash.o
 
 all: bin_dir http_parser.o cws.o cdats.o
-	$(GCC) $(INCLUDES) $(FLAGS) $(DEPS) $(MAIN_SOURCES) -o $(BUILD)/riows -DDEBUG=0
+	$(GCC) $(INCLUDES) $(FLAGS) $(DEPS) $(MAIN_SOURCES) -o $(BUILD)/riows
 clean:
 	@rm -rf build/
 bin_dir:
