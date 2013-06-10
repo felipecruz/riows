@@ -13,7 +13,7 @@ ifeq ($(UNAME_S),Darwin)
     FLAGS += -std=c99
 endif
 
-SOURCES=$(SRC)/rioev.c $(SRC)/rnetwork.c
+SOURCES=$(SRC)/rioev.c $(SRC)/rstatic.c $(SRC)/rnetwork.c
 MAIN_SOURCES=$(SOURCES) $(SRC)/riows.c
 TEST_SOURCES=$(TESTS)/thc.c $(TESTS)/test_rioev.c $(TESTS)/suite.c
 DEPS=vendor/http-parser/http_parser.o vendor/cws/b64.o vendor/cws/cws.o \

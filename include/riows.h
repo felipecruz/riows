@@ -13,6 +13,11 @@
 #ifndef _RIOWS_H_
 #define _RIOWS_H_
 
+enum riows_client_states {
+    INIT,
+    FINISHED
+};
+
 typedef struct {
     pid_t pid;
     int fd;
@@ -22,7 +27,7 @@ typedef struct {
 
 typedef struct {
     int fd;
-    int state;
+    enum riows_client_states state;
 } rio_client_t;
 
 int main (int argc, char **argv);
