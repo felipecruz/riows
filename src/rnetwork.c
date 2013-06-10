@@ -2,8 +2,9 @@
 #include <rutils.h>
 
 char *default_response =
-    "HTTP/1.1 200 OK\r\nContent-Type: text/html;"
-    "charset=utf-8\r\nContent-Length: 50\r\n\n"
+    "HTTP/1.1 200 OK\r\n"
+    "Content-Type: text/html\r\n"
+    "Content-Length: 49\r\n\n"
     "<!doctype html><body><h1>riows</h1></body></html>";
 
 int set_nonblock (int fd)
@@ -63,20 +64,17 @@ void handle_request (rio_worker_t *worker, rio_client_t *client)
     char buffer[8192];
 
     rc = recv (client->fd, buffer, 8192, MSG_DONTWAIT);
-    if (rc == -1) {
-        log_err ("Error Reading");
-        exit (-1);
-    }
+    if (rc == -1)
+        handle_error ("Error Reading");
+
     log_debug ("Client fd:%d - Request - size:%d\n %s\n", client->fd, rc, buffer);
 
-    rc = send (client->fd, default_response, strlen (default_response), MSG_DONTWAIT);
-    if (rc == -1) {
-        log_err ("Error Writing");
-        exit (-1);
-    }
+    handle_static (worker, client);
 
-    rioev_del (worker->rioev, client->fd);
-    close (client->fd);
+    if (client->state == FINISHED) {
+        rioev_del (worker->rioev, client->fd);
+        close (client->fd);
+    }
 }
 
 int rnetwork_loop (rio_worker_t *worker)
