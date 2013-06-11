@@ -1,11 +1,4 @@
 #include <rnetwork.h>
-#include <rutils.h>
-
-char *default_response =
-    "HTTP/1.1 200 OK\r\n"
-    "Content-Type: text/html\r\n"
-    "Content-Length: 49\r\n\n"
-    "<!doctype html><body><h1>riows</h1></body></html>";
 
 int set_nonblock (int fd)
 {
@@ -18,6 +11,7 @@ int accept_client (int fd, rio_client_t *rio_client)
     struct sockaddr_in client;
 
     rio_client->fd = accept (fd, (struct sockaddr*)&client, (socklen_t*) &len);
+    rio_client->state = INIT;
 
     if (set_nonblock (rio_client->fd) == -1)
         handle_error ("Error setting socket non-blocking");
@@ -58,18 +52,58 @@ int socket_bind (int port)
     return socket_fd;
 }
 
+
+static http_parser_settings parser_settings =
+{
+    rio_on_message_begin,
+    rio_on_uri,
+    rio_on_status_complete,
+    rio_on_header_field,
+    rio_on_header_value,
+    rio_on_headers_complete,
+    rio_on_body,
+    rio_on_message_complete
+};
+
+void handle_write (rio_worker_t *worker, rio_client_t *client)
+{
+    handle_static (worker, client);
+
+    if (client->state == FINISHED) {
+        rioev_del (worker->rioev, client->fd);
+        close (client->fd);
+    }
+}
+
 void handle_request (rio_worker_t *worker, rio_client_t *client)
 {
     int rc;
+    size_t parsed;
     char buffer[8192];
+    http_parser *parser = malloc (sizeof (http_parser));
+    if (parser == NULL)
+        handle_error ("Malloc");
+
+    http_parser_init (parser, HTTP_REQUEST);
+    parser->data = client;
 
     rc = recv (client->fd, buffer, 8192, MSG_DONTWAIT);
     if (rc == -1)
         handle_error ("Error Reading");
+    if (rc == 0) /* TODO close connection */
+        handle_error ("Client Closed");
 
-    log_debug ("Client fd:%d - Request - size:%d\n %s\n", client->fd, rc, buffer);
+    parsed = http_parser_execute (parser, &parser_settings, buffer, rc);
+    free (parser);
 
-    handle_static (worker, client);
+    log_debug ("Client fd:%d - Request - size:%d\n%s\n", client->fd, rc, buffer);
+
+    if (parsed != rc) {
+        log_debug ("Invalid Request");
+        client->state = FINISHED;
+    } else {
+        handle_static (worker, client);
+    }
 
     if (client->state == FINISHED) {
         rioev_del (worker->rioev, client->fd);
@@ -95,7 +129,6 @@ int rnetwork_loop (rio_worker_t *worker)
 
     ITERATE(worker->rioev, 200)
         rio_client_t *new_client;
-        log_debug ("Events: %d\n", total);
         EVENT_LOOP(worker->rioev)
         {
             log_debug ("Worker fd:%d event fd:%d\n", worker->fd, GET_FD(ev));
@@ -112,7 +145,12 @@ int rnetwork_loop (rio_worker_t *worker)
                 }
             } else {
                 el = hash_get (clients, GET_FD(ev));
-                handle_request (worker, el->value);
+                if (IS_RIOEV_IN(ev)) {
+                    handle_request (worker, el->value);
+                } else if (IS_RIOEV_OUT(ev)) {
+                    handle_write (worker, el->value);
+
+                }
             }
         END_LOOP
     END_ITERATE

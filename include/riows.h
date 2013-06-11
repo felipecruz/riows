@@ -15,6 +15,7 @@
 
 enum riows_client_states {
     INIT,
+    SENDFILE,
     FINISHED
 };
 
@@ -27,7 +28,11 @@ typedef struct {
 
 typedef struct {
     int fd;
+    char *path;
+    int method;
     enum riows_client_states state;
+    int current_offset;
+    int current_size;
 } rio_client_t;
 
 int main (int argc, char **argv);
