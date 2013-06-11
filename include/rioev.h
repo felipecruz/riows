@@ -23,7 +23,7 @@
 #define ITERATE(ctx, timeout)                                           \
     while (1) {                                                         \
         struct epoll_event *ev;                                         \
-        int total = rioev_poll (worker->rioev, timeout);                \
+        int total = rioev_poll (ctx, timeout);                \
 
 #define EVENT_LOOP(ctx)                                                 \
         int i = 0;                                                      \
