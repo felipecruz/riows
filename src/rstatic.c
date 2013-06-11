@@ -30,7 +30,7 @@ char* extension(char *value)
 
 char* extract_query_string (char *value)
 {
-    char *p;
+    char *p = NULL;
 
     while (*(value++)) {
         if (*(value) == '?') {
