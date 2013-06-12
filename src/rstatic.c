@@ -101,7 +101,8 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
     file_fd = open (path, O_RDONLY);
     if (file_fd == -1) {
         if (errno == ENOENT) {
-            write (client->fd, default_response, strlen (default_response));
+            rc = write (client->fd, default_response, strlen (default_response));
+            /* TODO handle rc */
             client->state = FINISHED;
             return;
         } else {
