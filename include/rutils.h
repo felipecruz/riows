@@ -1,7 +1,10 @@
 #ifndef _RUTILS_H_
 #define _RUTILS_G_
 #define handle_error(msg) \
-       do { perror(msg); exit(EXIT_FAILURE); } while (0)
+       do { perror(msg);                                      \
+            fprintf (stderr, "Errno: %d %s\n", errno,         \
+                     clean_errno());                          \
+            exit(EXIT_FAILURE); } while (0)
 
 #define clean_errno() (errno == 0 ? "None" : strerror(errno))
 

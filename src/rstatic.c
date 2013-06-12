@@ -14,7 +14,7 @@ char *default_response =
     "Content-Length: 49\r\n\n"
     "<!doctype html><body><h1>riows</h1></body></html>";
 
-char* extension(char *value)
+char* extension (char *value)
 {
     char *p;
 
@@ -30,7 +30,7 @@ char* extension(char *value)
 
 char* extract_query_string (char *value)
 {
-    char *p;
+    char *p = NULL;
 
     while (*(value++)) {
         if (*(value) == '?') {
@@ -43,30 +43,30 @@ char* extract_query_string (char *value)
     return p;
 }
 
-const char* mime_type(char *value)
+const char* mime_type (char *value)
 {
-    if (strcmp(value, "html") == 0) {
+    if (strcmp (value, "html") == 0) {
         return "text/html";
     }
-    else if (strcmp(value, "css") == 0) {
+    else if (strcmp (value, "css") == 0) {
         return "text/css";
     }
-    else if (strcmp(value, "json") == 0) {
+    else if (strcmp (value, "json") == 0) {
         return "application/json";
     }
-    else if (strcmp(value, "js") == 0) {
+    else if (strcmp (value, "js") == 0) {
         return "application/javascript";
     }
-    else if (strcmp(value, "png") == 0) {
+    else if (strcmp (value, "png") == 0) {
         return "image/png";
     }
-    else if (strcmp(value, "jpg") == 0) {
+    else if (strcmp (value, "jpg") == 0) {
         return "image/jpg";
     }
-    else if (strcmp(value, "svg") == 0) {
+    else if (strcmp (value, "svg") == 0) {
         return "image/svg+xml";
     }
-    else if (strcmp(value, "woff") == 0) {
+    else if (strcmp (value, "woff") == 0) {
         return "application/font-woff";
     }
     else {
@@ -101,7 +101,8 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
     file_fd = open (path, O_RDONLY);
     if (file_fd == -1) {
         if (errno == ENOENT) {
-            write (client->fd, default_response, strlen (default_response));
+            rc = write (client->fd, default_response, strlen (default_response));
+            /* TODO handle rc */
             client->state = FINISHED;
             return;
         } else {
@@ -132,8 +133,25 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
             handle_error ("Error on Header send");
 
     }
+#ifdef __linux__
+    rc = sendfile (client->fd, file_fd, (off_t*)&client->current_offset, client->current_size);
+    if (rc == -1) {
+        if (errno == EAGAIN) {
+            handle_error ("Sendfile EAGAIN");
+        } else {
+            handle_error ("Sendfile error");
+        }
+    }
 
-    rc = sendfile (file_fd, client->fd, client->current_offset, (off_t*)&file_len, NULL, 0);
+    if (client->current_offset < client->current_size) {
+        client->state = SENDFILE;
+        close (file_fd);
+        rioev_del (worker->rioev, client->fd);
+        rioev_add (worker->rioev, client->fd, RIOEV_OUT);
+        return;
+    }
+#elif __APPLE__
+    rc = sendfile (file_fd, client->fd, (off_t)client->current_offset, (off_t*)&file_len, NULL, 0);
     if (rc == -1) {
         if (errno == EAGAIN) {
             client->current_offset += file_len;
@@ -147,6 +165,7 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
         else
             handle_error ("Error on Kernel Sendfile");
     }
+#endif
 
     close (file_fd);
     client->state = FINISHED;

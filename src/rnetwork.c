@@ -2,7 +2,11 @@
 
 int set_nonblock (int fd)
 {
-    return fcntl (fd, F_SETFL, O_NONBLOCK);
+    int flags;
+    if ((flags = fcntl (fd, F_GETFL, 0)) == -1)
+        handle_error ("Error F_GETFL");
+
+    return fcntl (fd, F_SETFL, flags | O_NONBLOCK);
 }
 
 int accept_client (int fd, rio_client_t *rio_client)
@@ -11,6 +15,9 @@ int accept_client (int fd, rio_client_t *rio_client)
     struct sockaddr_in client;
 
     rio_client->fd = accept (fd, (struct sockaddr*)&client, (socklen_t*) &len);
+    if (rio_client->fd == -1)
+        handle_error ("Error Accepting new Client");
+
     rio_client->state = INIT;
 
     if (set_nonblock (rio_client->fd) == -1)
@@ -69,10 +76,14 @@ void handle_write (rio_worker_t *worker, rio_client_t *client)
 {
     handle_static (worker, client);
 
-    if (client->state == FINISHED) {
-        rioev_del (worker->rioev, client->fd);
-        close (client->fd);
-    }
+    if (client->state == FINISHED)
+        del_and_close (worker, client);
+}
+
+void del_and_close (rio_worker_t *worker, rio_client_t *client)
+{
+    rioev_del (worker->rioev, client->fd);
+    close (client->fd);
 }
 
 void handle_request (rio_worker_t *worker, rio_client_t *client)
@@ -119,10 +130,8 @@ void handle_request (rio_worker_t *worker, rio_client_t *client)
         handle_static (worker, client);
     }
 
-    if (client->state == FINISHED) {
-        rioev_del (worker->rioev, client->fd);
-        close (client->fd);
-    }
+    if (client->state == FINISHED)
+        del_and_close (worker, client);
 }
 
 int rnetwork_loop (rio_worker_t *worker)
