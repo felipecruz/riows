@@ -104,16 +104,9 @@ void handle_request (rio_worker_t *worker, rio_client_t *client)
     parser->data = client;
 
     rc = recv (client->fd, buffer, 8192, MSG_DONTWAIT);
-    if (rc == -1) {
+    if ((rc == -1) || (rc == 0)) {
         client->state = ERROR;
-        rioev_del (worker->rioev, client->fd);
-        free(parser);
-        return;
-    }
-
-    if (rc == 0) {
-        client->state = ERROR;
-        rioev_del (worker->rioev, client->fd);
+        del_and_close (worker, client);
         free(parser);
         return;
     }
