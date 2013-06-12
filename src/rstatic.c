@@ -132,8 +132,25 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
             handle_error ("Error on Header send");
 
     }
+#ifdef __linux__
+    rc = sendfile (client->fd, file_fd, (off_t*)&client->current_offset, client->current_size);
+    if (rc == -1) {
+        if (errno == EAGAIN) {
+            handle_error ("Sendfile EAGAIN");
+        } else {
+            handle_error ("Sendfile error");
+        }
+    }
 
-    rc = sendfile (file_fd, client->fd, client->current_offset, (off_t*)&file_len, NULL, 0);
+    if (client->current_offset < client->current_size) {
+        client->state = SENDFILE;
+        close (file_fd);
+        rioev_del (worker->rioev, client->fd);
+        rioev_add (worker->rioev, client->fd, RIOEV_OUT);
+        return;
+    }
+#elif __APPLE__
+    rc = sendfile (file_fd, client->fd, (off_t)client->current_offset, (off_t*)&file_len, NULL, 0);
     if (rc == -1) {
         if (errno == EAGAIN) {
             client->current_offset += file_len;
@@ -147,6 +164,7 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
         else
             handle_error ("Error on Kernel Sendfile");
     }
+#endif
 
     close (file_fd);
     client->state = FINISHED;
