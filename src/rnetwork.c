@@ -80,6 +80,11 @@ void handle_request (rio_worker_t *worker, rio_client_t *client)
     int rc;
     size_t parsed;
     char buffer[8192];
+
+    if (client->state == ERROR) {
+        return;
+    }
+
     http_parser *parser = malloc (sizeof (http_parser));
     if (parser == NULL)
         handle_error ("Malloc");
@@ -88,10 +93,19 @@ void handle_request (rio_worker_t *worker, rio_client_t *client)
     parser->data = client;
 
     rc = recv (client->fd, buffer, 8192, MSG_DONTWAIT);
-    if (rc == -1)
-        handle_error ("Error Reading");
-    if (rc == 0) /* TODO close connection */
-        handle_error ("Client Closed");
+    if (rc == -1) {
+        client->state = ERROR;
+        rioev_del (worker->rioev, client->fd);
+        free(parser);
+        return;
+    }
+
+    if (rc == 0) {
+        client->state = ERROR;
+        rioev_del (worker->rioev, client->fd);
+        free(parser);
+        return;
+    }
 
     parsed = http_parser_execute (parser, &parser_settings, buffer, rc);
     free (parser);

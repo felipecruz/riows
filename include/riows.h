@@ -16,6 +16,7 @@
 enum riows_client_states {
     INIT,
     SENDFILE,
+    ERROR,
     FINISHED
 };
 
