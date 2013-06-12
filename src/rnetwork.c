@@ -2,7 +2,11 @@
 
 int set_nonblock (int fd)
 {
-    return fcntl (fd, F_SETFL, O_NONBLOCK);
+    int flags;
+    if ((flags = fcntl (fd, F_GETFL, 0)) == -1)
+        handle_error ("Error F_GETFL");
+
+    return fcntl (fd, F_SETFL, flags | O_NONBLOCK);
 }
 
 int accept_client (int fd, rio_client_t *rio_client)
