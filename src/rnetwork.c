@@ -11,7 +11,7 @@ int set_nonblock (int fd)
 
 int accept_client (int fd, rio_client_t *rio_client)
 {
-    size_t len;
+    size_t len = 0;
     struct sockaddr_in client;
 
     rio_client->fd = accept (fd, (struct sockaddr*)&client, (socklen_t*) &len);
