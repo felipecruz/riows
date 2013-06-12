@@ -161,9 +161,14 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
             rioev_del (worker->rioev, client->fd);
             rioev_add (worker->rioev, client->fd, RIOEV_OUT);
             return;
-        }
-        else
+        } else if (errno == ENOTCONN || errno == EPIPE) {
+            client->state = ERROR;
+            close (file_fd);
+            rioev_del (worker->rioev, client->fd);
+            return;
+        } else {
             handle_error ("Error on Kernel Sendfile");
+        }
     }
 #endif
 
