@@ -11,6 +11,7 @@
 
 #ifdef __linux__
 #include <sys/epoll.h>
+#include <sys/sendfile.h>
 
 #define RIOEV_IN EPOLLIN
 #define RIOEV_OUT EPOLLOUT
