@@ -31,7 +31,7 @@ typedef struct {
     char *path;
     int method;
     enum riows_client_states state;
-    int current_offset;
+    size_t current_offset;
     int current_size;
 } rio_client_t;
 
