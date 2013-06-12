@@ -14,7 +14,7 @@ char *default_response =
     "Content-Length: 49\r\n\n"
     "<!doctype html><body><h1>riows</h1></body></html>";
 
-char* extension(char *value)
+char* extension (char *value)
 {
     char *p;
 
@@ -43,30 +43,30 @@ char* extract_query_string (char *value)
     return p;
 }
 
-const char* mime_type(char *value)
+const char* mime_type (char *value)
 {
-    if (strcmp(value, "html") == 0) {
+    if (strcmp (value, "html") == 0) {
         return "text/html";
     }
-    else if (strcmp(value, "css") == 0) {
+    else if (strcmp (value, "css") == 0) {
         return "text/css";
     }
-    else if (strcmp(value, "json") == 0) {
+    else if (strcmp (value, "json") == 0) {
         return "application/json";
     }
-    else if (strcmp(value, "js") == 0) {
+    else if (strcmp (value, "js") == 0) {
         return "application/javascript";
     }
-    else if (strcmp(value, "png") == 0) {
+    else if (strcmp (value, "png") == 0) {
         return "image/png";
     }
-    else if (strcmp(value, "jpg") == 0) {
+    else if (strcmp (value, "jpg") == 0) {
         return "image/jpg";
     }
-    else if (strcmp(value, "svg") == 0) {
+    else if (strcmp (value, "svg") == 0) {
         return "image/svg+xml";
     }
-    else if (strcmp(value, "woff") == 0) {
+    else if (strcmp (value, "woff") == 0) {
         return "application/font-woff";
     }
     else {
