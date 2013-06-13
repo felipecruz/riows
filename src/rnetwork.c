@@ -14,6 +14,7 @@ int accept_client (int fd, rio_client_t *rio_client)
     size_t len = 0;
     struct sockaddr_in client;
 
+    bzero (&client, sizeof (struct sockaddr_in));
     rio_client->fd = accept (fd, (struct sockaddr*)&client, (socklen_t*) &len);
     if (rio_client->fd == -1)
         handle_error ("Error Accepting new Client");
