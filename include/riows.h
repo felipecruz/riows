@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include "hash.h"
 
 #ifndef _RIOWS_H_
 #define _RIOWS_H_
@@ -25,6 +26,7 @@ typedef struct {
     int fd;
     char name[10];
     rioev_t *rioev;
+    hash *clients;
 } rio_worker_t;
 
 typedef struct {

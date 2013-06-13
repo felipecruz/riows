@@ -90,7 +90,7 @@ void del_and_close (rio_worker_t *worker, rio_client_t *client)
     rioev_del (worker->rioev, client->fd);
     close (client->fd);
 
-    free (client);
+    hash_del (worker->clients, client->fd);
 }
 
 void handle_request (rio_worker_t *worker, rio_client_t *client)
@@ -138,13 +138,13 @@ int rnetwork_loop (rio_worker_t *worker)
 {
     int total;
     int new_client;
-    hash *clients = hash_init (MAX_EVENTS + 100);
     hash_elem_t *el;
 
     worker->fd = socket_bind (80);
     worker->rioev = rioev_init ();
     sprintf(worker->name, "WORKER:%d", worker->fd);
     rioev_add (worker->rioev, worker->fd, RIOEV_IN);
+    worker->clients = hash_init (MAX_EVENTS + 100);
 
     log_info ("Worker %s running\n", worker->name);
 
@@ -159,15 +159,15 @@ int rnetwork_loop (rio_worker_t *worker)
                 if (IS_RIOEV_IN(ev)) {
                     new_client = malloc (sizeof (rio_client_t));
                     if (accept_client (worker->fd, new_client) == -1)
-                        log_err ("Error Accepting Client");
+                        handle_error ("Error Accepting Client");
                     else {
-                        hash_put (clients, new_client->fd , new_client,
+                        hash_put (worker->clients, new_client->fd , new_client,
                                   sizeof (new_client));
                         rioev_add (worker->rioev, new_client->fd, RIOEV_IN);
                     }
                 }
             } else {
-                el = hash_get (clients, GET_FD(ev));
+                el = hash_get (worker->clients, GET_FD(ev));
                 if (IS_RIOEV_IN(ev)) {
                     handle_request (worker, el->value);
                 } else if (IS_RIOEV_OUT(ev)) {
@@ -180,7 +180,7 @@ int rnetwork_loop (rio_worker_t *worker)
 
     log_info ("Finishing %s", worker->name);
 
-    hash_destroy (&clients);
+    hash_destroy (&worker->clients);
     rioev_destroy (&worker->rioev);
     close (worker->fd);
     free (worker);
