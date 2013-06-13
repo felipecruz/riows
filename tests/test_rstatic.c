@@ -25,8 +25,15 @@ void test_extract_query_string (void)
     char input3[] = "/image.woff?632182";
     char input4[] = "/image.woff?632.182";
 
-    ENSURE (0 == strcmp ("type=json", extract_query_string (input1)));
-    ENSURE (NULL == extract_query_string (input2));
-    ENSURE (0 == strcmp ("632182", extract_query_string (input3)));
-    ENSURE (0 == strcmp ("632.182", extract_query_string (input4)));
+    char *out1 = extract_query_string (input1);
+    char *out2 = extract_query_string (input2);
+    char *out3 = extract_query_string (input3);
+    char *out4 = extract_query_string (input4);
+
+    ENSURE (0 == strcmp ("type=json", out1));
+    ENSURE (NULL == out2);
+    ENSURE (0 == strcmp ("632182", out3));
+    ENSURE (0 == strcmp ("632.182", out4));
+
+    free (out1); free (out2); free (out3); free (out4);
 }

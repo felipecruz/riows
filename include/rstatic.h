@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/uio.h>
+#include <string.h>
 
 #ifndef _RSTATIC_H_
 #define _RSTATIC_H_

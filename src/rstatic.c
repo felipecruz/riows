@@ -31,14 +31,13 @@ char* extension (char *value)
 char* extract_query_string (char *value)
 {
     char *p = NULL;
+    char *query = strchr (value, '?');
 
-    while (*(value++)) {
-        if (*(value) == '?') {
-            *(value) = '\0';
-            p = (value + 1);
-            break;
-        }
-    }
+    if (query == NULL)
+        return NULL;
+
+    p = malloc (sizeof (char) * (query - value));
+    strcpy (p, (query + 1));
 
     return p;
 }
