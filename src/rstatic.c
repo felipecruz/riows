@@ -103,7 +103,8 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
     file_fd = open (path, O_RDONLY);
     if (file_fd == -1) {
         free (path);
-        free (query_string);
+        if (query_string)
+            free (query_string);
         if (errno == ENOENT) {
             rc = write (client->fd, default_response, strlen (default_response));
             /* TODO handle rc */
@@ -138,7 +139,8 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
 
     }
 
-    free (query_string);
+    if (query_string)
+        free (query_string);
     free (path);
 
 #ifdef __linux__
