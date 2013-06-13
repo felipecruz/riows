@@ -125,7 +125,7 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
 
         log_debug ("File extension %s %s\n", file_extension, mime_type (file_extension));
 
-        bzero (out_buffer, strlen (out_buffer));
+        bzero (out_buffer, 8192);
         sprintf (out_buffer, default_header, mime_type (file_extension), file_len);
         rc = write (client->fd, out_buffer, strlen (out_buffer));
         if (rc == -1)
