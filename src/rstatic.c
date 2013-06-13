@@ -132,6 +132,10 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
             handle_error ("Error on Header send");
 
     }
+
+    free (query_string);
+    free (path);
+
 #ifdef __linux__
     rc = sendfile (client->fd, file_fd, (off_t*)&client->current_offset, client->current_size);
     if (rc == -1) {
