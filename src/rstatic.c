@@ -151,7 +151,11 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
         return;
     }
 #elif (__APPLE__ || __FreeBSD__)
+#ifdef __APPLE__
     rc = sendfile (file_fd, client->fd, (off_t)client->current_offset, (off_t*)&file_len, NULL, 0);
+#elif __FreeBSD__
+    rc = sendfile (file_fd, client->fd, (off_t)client->current_offset, file_len, NULL, (off_t*)&file_len, 0);
+#endif
     if (rc == -1) {
         if (errno == EAGAIN) {
             client->current_offset += file_len;
