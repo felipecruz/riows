@@ -85,13 +85,16 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
     char *query_string;
     struct stat _stat;
 
-    path = malloc (strlen (client->path) + 3);
-    /* TODO: needs some sort of configuration */
-    path = strcpy (path, ".");
-    if (strcmp (client->path, "/") == 0)
+    if (strcmp (client->path, "/") == 0) {
+        path = malloc (strlen ("/index.html") + 2);
+        path = strcpy (path, ".");
         path = strcat (path, "/index.html");
-    else
+    } else {
+        path = malloc (strlen (client->path) + 3);
+        /* TODO: needs some sort of configuration */
+        path = strcpy (path, ".");
         path = strcat (path, client->path);
+    }
 
     log_debug ("File path: %s\n", path);
     query_string = extract_query_string (path);
