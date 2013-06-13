@@ -10,7 +10,7 @@ void test_rioev_init_destroy (void)
     ENSURE (NULL != rioev);
 #ifdef __linux__
     ENSURE (1 <= rioev->epollfd);
-#elif __APPLE__
+#elif (__APPLE__ || __FreeBSD__)
     ENSURE (1 <= rioev->kqfd);
     ENSURE (0 == rioev->nevents);
 #endif
@@ -66,7 +66,7 @@ void test_rioev_add_del_mod (void)
     ENSURE (-1 == rioev_mod (rioev, w, 0));
 #endif
 
-#ifdef __APPLE__
+#ifdef (__APPLE__ || __FreeBSD__)
 
     /* We need more testing since rioev introduces some complexity
      * managing it's own struct kevent array.
@@ -138,7 +138,7 @@ void test_rioev_poll (void)
             (w == rioev->events[0].data.fd));
     ENSURE ((r == rioev->events[1].data.fd) ||
             (w == rioev->events[1].data.fd));
-#elif __APPLE__
+#elif (__APPLE__ || __FreeBSD__)
     /* position is not guarantee */
     ENSURE ((r == rioev->eventlist[0].ident) ||
             (w == rioev->eventlist[0].ident));

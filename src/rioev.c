@@ -9,7 +9,7 @@ rioev_t* rioev_init (void)
         free (rioev);
         return NULL;
     }
-#elif __APPLE__
+#elif (__APPLE__ || __FreeBSD__)
     rioev->kqfd = kqueue ();
     if (rioev->kqfd == -1) {
         free (rioev);
@@ -32,7 +32,7 @@ int rioev_add (rioev_t *rioev, int fd, int event)
     _ev.events = event;
     rc = epoll_ctl (rioev->epollfd, EPOLL_CTL_ADD, fd, &_ev);
     return rc;
-#elif __APPLE__
+#elif (__APPLE__ || __FreeBSD__)
     struct kevent *_ev;
     for (int i = 0; i < MAX_EVENTS; i++) {
         _ev = &rioev->changelist[i];
@@ -55,7 +55,7 @@ int rioev_del (rioev_t *rioev, int fd)
     memset (&_ev, 0, sizeof (struct epoll_event));
     rc = epoll_ctl (rioev->epollfd, EPOLL_CTL_DEL, fd, &_ev);
     return rc;
-#elif __APPLE__
+#elif (__APPLE__ || __FreeBSD__)
     int removed_position;
     struct kevent *_ev;
     for (int i = 0; i < MAX_EVENTS; i++) {
@@ -87,7 +87,7 @@ int rioev_mod (rioev_t *rioev, int fd, int event)
     _ev.events = event;
     rc = epoll_ctl (rioev->epollfd, EPOLL_CTL_MOD, fd, &_ev);
     return rc;
-#elif __APPLE__
+#elif (__APPLE__ || __FreeBSD__)
     struct kevent *_ev;
     for (int i = 0; i < MAX_EVENTS; i++) {
         _ev = &rioev->changelist[i];
@@ -106,7 +106,7 @@ int rioev_poll (rioev_t *rioev, int timeout)
 #ifdef __linux__
     rc = epoll_wait (rioev->epollfd, rioev->events, MAX_EVENTS, timeout);
     return rc;
-#elif __APPLE__
+#elif (__APPLE__ || __FreeBSD__)
     struct timespec ts;
     ts.tv_sec = timeout / 1000;
     ts.tv_nsec = (timeout % 1000) * 1000000;
@@ -121,7 +121,7 @@ void rioev_destroy (rioev_t **rioev)
     rioev_t *_rioev = *rioev;
 #ifdef __linux__
     close (_rioev->epollfd);
-#elif __APPLE__
+#elif (__APPLE__ || __FreeBSD__)
     close (_rioev->kqfd);
 #endif
     free (_rioev);

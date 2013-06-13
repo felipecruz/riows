@@ -150,7 +150,7 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
         rioev_add (worker->rioev, client->fd, RIOEV_OUT);
         return;
     }
-#elif __APPLE__
+#elif (__APPLE__ || __FreeBSD__)
     rc = sendfile (file_fd, client->fd, (off_t)client->current_offset, (off_t*)&file_len, NULL, 0);
     if (rc == -1) {
         if (errno == EAGAIN) {

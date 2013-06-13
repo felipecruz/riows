@@ -32,7 +32,7 @@
              i < total;                                                 \
              ev = &ctx->events[i])                                      \
 
-#elif __APPLE__
+#elif (__APPLE__ || __FreeBSD__)
 #include <sys/types.h>
 #include <sys/event.h>
 #include <sys/time.h>
@@ -67,7 +67,7 @@ struct rioev_s {
 #ifdef __linux__
     int epollfd;
     struct epoll_event events[MAX_EVENTS];
-#elif __APPLE__
+#elif (__APPLE__ || __FreeBSD__)
     int kqfd;
     int nevents;
     struct kevent changelist[MAX_EVENTS];
