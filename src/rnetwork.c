@@ -84,8 +84,13 @@ void handle_write (rio_worker_t *worker, rio_client_t *client)
 
 void del_and_close (rio_worker_t *worker, rio_client_t *client)
 {
+    if (client->path)
+        free (client->path);
+
     rioev_del (worker->rioev, client->fd);
     close (client->fd);
+
+    free (client);
 }
 
 void handle_request (rio_worker_t *worker, rio_client_t *client)
