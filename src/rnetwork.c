@@ -20,7 +20,7 @@ int accept_client (int fd, rio_client_t *rio_client)
         handle_error ("Error Accepting new Client");
 
     rio_client->state = INIT;
-    rio_client->current_offset = -1;
+    rio_client->current_offset = 0;
 
     if (set_nonblock (rio_client->fd) == -1)
         handle_error ("Error setting socket non-blocking");
