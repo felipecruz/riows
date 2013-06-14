@@ -78,7 +78,7 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
 {
     int rc;
     int file_fd;
-    size_t file_len;
+    off_t file_len;
     char out_buffer[8192];
     char *path;
     char *file_extension;
