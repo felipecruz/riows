@@ -163,9 +163,6 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
 #elif (__APPLE__ || __FreeBSD__)
 #ifdef __APPLE__
     rc = sendfile (file_fd, client->fd, (off_t)client->current_offset, (off_t*)&file_len, NULL, 0);
-#elif __FreeBSD__
-    rc = sendfile (file_fd, client->fd, (off_t)client->current_offset, file_len, NULL, (off_t*)&file_len, 0);
-#endif
     if (rc == -1) {
         if (errno == EAGAIN) {
             client->current_offset += file_len;
@@ -181,9 +178,39 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
             rioev_del (worker->rioev, client->fd);
             return;
         } else {
-            handle_error ("Error on Kernel Sendfile");
+            handle_error ("OSX Error on Sendfile");
         }
     }
+#elif __FreeBSD__
+    rc = sendfile (file_fd, client->fd, (off_t)client->current_offset, file_len, NULL, (off_t*)&file_len, 0);
+
+    /* file_len is filled only on those restrictions */
+    if (((rc == -1) && (errno == EAGAIN || errno == EINTR)) || (rc == 0))
+        client->current_offset += file_len;
+
+    log_info ("Sent:%d Offset:%d Total:%d\n", file_len, client->current_offset, client->current_size);
+    if (rc == -1) {
+        if (errno == EAGAIN) {
+            client->state = SENDFILE;
+            close (file_fd);
+            rioev_del (worker->rioev, client->fd);
+            rioev_add (worker->rioev, client->fd, RIOEV_OUT);
+            return;
+        } else {
+            close (file_fd);
+            rioev_del (worker->rioev, client->fd);
+            return;
+        }
+    }
+
+    if (client->current_offset < client->current_size) {
+        client->state = SENDFILE;
+        close (file_fd);
+        rioev_del (worker->rioev, client->fd);
+        rioev_add (worker->rioev, client->fd, RIOEV_OUT);
+        return;
+    }
+#endif
 #endif
 
     close (file_fd);
