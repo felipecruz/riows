@@ -3,4 +3,4 @@
 	url = https://github.com/joyent/http-parser.git
 [submodule "vendor/cws"]
 	path = vendor/cws
-	url = git@github.com:felipecruz/cws.git
+	url = https://github.com/felipecruz/cws.git
