@@ -20,11 +20,12 @@
 #define GET_FD(ev) (int)ev->data.fd
 #define IS_RIOEV_IN(ev) (ev->events & RIOEV_IN)
 #define IS_RIOEV_OUT(ev) (ev->events & RIOEV_OUT)
+#define IS_RIOEV_ERR(ev) (ev->events & EPOLLERR || ev->events & EPOLLHUP)
 
 #define ITERATE(ctx, timeout)                                           \
     while (1) {                                                         \
         struct epoll_event *ev;                                         \
-        int total = rioev_poll (ctx, timeout);                \
+        int total = rioev_poll (ctx, timeout);                          \
 
 #define EVENT_LOOP(ctx)                                                 \
         int i = 0;                                                      \

@@ -110,8 +110,8 @@ void test_rioev_add_del_mod (void)
     ENSURE (w3 == rioev->changelist[0].ident);
     ENSURE (w3 == rioev->changelist[3].ident);
 
-    ENSURE (-1 == rioev_del (rioev, 1000));
 #endif
+    ENSURE (-1 == rioev_del (rioev, 1000));
 
     /* avoid leak */
     rioev_destroy (&rioev);
