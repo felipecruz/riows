@@ -14,11 +14,13 @@ int accept_client (int fd, rio_client_t *rio_client)
     size_t len = 0;
     struct sockaddr_in client;
 
+    bzero (&client, sizeof (struct sockaddr_in));
     rio_client->fd = accept (fd, (struct sockaddr*)&client, (socklen_t*) &len);
     if (rio_client->fd == -1)
         handle_error ("Error Accepting new Client");
 
     rio_client->state = INIT;
+    rio_client->current_offset = 0;
 
     if (set_nonblock (rio_client->fd) == -1)
         handle_error ("Error setting socket non-blocking");
@@ -82,8 +84,12 @@ void handle_write (rio_worker_t *worker, rio_client_t *client)
 
 void del_and_close (rio_worker_t *worker, rio_client_t *client)
 {
+    if (client->path)
+        free (client->path);
+
     rioev_del (worker->rioev, client->fd);
     close (client->fd);
+    hash_del (worker->clients, client->fd);
 }
 
 void handle_request (rio_worker_t *worker, rio_client_t *client)
@@ -91,10 +97,6 @@ void handle_request (rio_worker_t *worker, rio_client_t *client)
     int rc;
     size_t parsed;
     char buffer[8192];
-
-    if (client->state == ERROR) {
-        return;
-    }
 
     http_parser *parser = malloc (sizeof (http_parser));
     if (parser == NULL)
@@ -105,7 +107,6 @@ void handle_request (rio_worker_t *worker, rio_client_t *client)
 
     rc = recv (client->fd, buffer, 8192, MSG_DONTWAIT);
     if ((rc == -1) || (rc == 0)) {
-        client->state = ERROR;
         del_and_close (worker, client);
         free(parser);
         return;
@@ -131,13 +132,13 @@ int rnetwork_loop (rio_worker_t *worker)
 {
     int total;
     int new_client;
-    hash *clients = hash_init (MAX_EVENTS + 100);
     hash_elem_t *el;
 
     worker->fd = socket_bind (80);
     worker->rioev = rioev_init ();
     sprintf(worker->name, "WORKER:%d", worker->fd);
     rioev_add (worker->rioev, worker->fd, RIOEV_IN);
+    worker->clients = hash_init (MAX_EVENTS + 100);
 
     log_info ("Worker %s running\n", worker->name);
 
@@ -148,24 +149,43 @@ int rnetwork_loop (rio_worker_t *worker)
         EVENT_LOOP(worker->rioev)
         {
             log_debug ("Worker fd:%d event fd:%d\n", worker->fd, GET_FD(ev));
+            if (total == -1 && IS_RIOEV_ERR(ev)) {
+                log_info ("Event Error\n");
+                close (GET_FD(ev));
+                rioev_del (worker->rioev, GET_FD(ev));
+                i++;
+                continue;
+            } else if (total == -1) {
+                handle_error ("Polling Error\n");
+            }
+
             if (worker->fd == GET_FD(ev)) {
                 if (IS_RIOEV_IN(ev)) {
                     new_client = malloc (sizeof (rio_client_t));
                     if (accept_client (worker->fd, new_client) == -1)
-                        log_err ("Error Accepting Client");
+                        handle_error ("Error Accepting Client");
                     else {
-                        hash_put (clients, new_client->fd , new_client,
+                        hash_put (worker->clients, new_client->fd , new_client,
                                   sizeof (new_client));
                         rioev_add (worker->rioev, new_client->fd, RIOEV_IN);
                     }
                 }
             } else {
-                el = hash_get (clients, GET_FD(ev));
-                if (IS_RIOEV_IN(ev)) {
-                    handle_request (worker, el->value);
-                } else if (IS_RIOEV_OUT(ev)) {
-                    handle_write (worker, el->value);
-
+                el = hash_get (worker->clients, GET_FD(ev));
+                if (el == NULL || el->value == NULL) {
+                    log_info ("Invalid CLIENT\n");
+                    close (GET_FD(ev));
+                    rioev_del (worker->rioev, GET_FD(ev));
+                    i++;
+                    continue;
+                } else {
+                    if (IS_RIOEV_IN(ev)) {
+                        handle_request (worker, el->value);
+                    } else if (IS_RIOEV_OUT(ev)) {
+                        handle_write (worker, el->value);
+                    } else {
+                        log_debug ("Unkow Event Mask\n");
+                    } 
                 }
             }
         END_LOOP
@@ -173,7 +193,7 @@ int rnetwork_loop (rio_worker_t *worker)
 
     log_info ("Finishing %s", worker->name);
 
-    hash_destroy (&clients);
+    hash_destroy (&worker->clients);
     rioev_destroy (&worker->rioev);
     close (worker->fd);
     free (worker);

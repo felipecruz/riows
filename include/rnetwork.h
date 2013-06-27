@@ -7,6 +7,11 @@
 #include <http_parser.h>
 #include <hash.h>
 
+#ifdef __FreeBSD__
+/* include sockaddr_in */
+#include <netinet/in.h>
+#endif
+
 #ifndef _RNETWORK_H_
 #define _RNETWORK_H_
 int rnetwork_loop (rio_worker_t *worker);

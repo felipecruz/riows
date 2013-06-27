@@ -31,14 +31,13 @@ char* extension (char *value)
 char* extract_query_string (char *value)
 {
     char *p = NULL;
+    char *query = strchr (value, '?');
 
-    while (*(value++)) {
-        if (*(value) == '?') {
-            *(value) = '\0';
-            p = (value + 1);
-            break;
-        }
-    }
+    if (query == NULL)
+        return NULL;
+
+    p = malloc (sizeof (char) * (query - value));
+    strcpy (p, (query + 1));
 
     return p;
 }
@@ -79,20 +78,23 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
 {
     int rc;
     int file_fd;
-    size_t file_len;
+    off_t file_len;
     char out_buffer[8192];
     char *path;
     char *file_extension;
     char *query_string;
     struct stat _stat;
 
-    path = malloc (strlen (client->path) + 3);
-    /* TODO: needs some sort of configuration */
-    path = strcpy (path, ".");
-    if (strcmp (client->path, "/") == 0)
+    if (strcmp (client->path, "/") == 0) {
+        path = malloc (strlen ("/index.html") + 2);
+        path = strcpy (path, ".");
         path = strcat (path, "/index.html");
-    else
+    } else {
+        path = malloc (strlen (client->path) + 3);
+        /* TODO: needs some sort of configuration */
+        path = strcpy (path, ".");
         path = strcat (path, client->path);
+    }
 
     log_debug ("File path: %s\n", path);
     query_string = extract_query_string (path);
@@ -100,6 +102,9 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
 
     file_fd = open (path, O_RDONLY);
     if (file_fd == -1) {
+        free (path);
+        if (query_string)
+            free (query_string);
         if (errno == ENOENT) {
             rc = write (client->fd, default_response, strlen (default_response));
             /* TODO handle rc */
@@ -126,13 +131,18 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
 
         log_debug ("File extension %s %s\n", file_extension, mime_type (file_extension));
 
-        bzero (out_buffer, strlen (out_buffer));
+        bzero (out_buffer, 8192);
         sprintf (out_buffer, default_header, mime_type (file_extension), file_len);
         rc = write (client->fd, out_buffer, strlen (out_buffer));
         if (rc == -1)
             handle_error ("Error on Header send");
 
     }
+
+    if (query_string)
+        free (query_string);
+    free (path);
+
 #ifdef __linux__
     rc = sendfile (client->fd, file_fd, (off_t*)&client->current_offset, client->current_size);
     if (rc == -1) {
@@ -150,7 +160,8 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
         rioev_add (worker->rioev, client->fd, RIOEV_OUT);
         return;
     }
-#elif __APPLE__
+#elif (__APPLE__ || __FreeBSD__)
+#ifdef __APPLE__
     rc = sendfile (file_fd, client->fd, (off_t)client->current_offset, (off_t*)&file_len, NULL, 0);
     if (rc == -1) {
         if (errno == EAGAIN) {
@@ -167,9 +178,42 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
             rioev_del (worker->rioev, client->fd);
             return;
         } else {
-            handle_error ("Error on Kernel Sendfile");
+            handle_error ("OSX Error on Sendfile");
         }
     }
+#elif __FreeBSD__
+    rc = sendfile (file_fd, client->fd, (off_t)client->current_offset, file_len, NULL, (off_t*)&file_len, 0);
+
+    /* file_len is filled only on those restrictions */
+    if (((rc == -1) && (errno == EAGAIN || errno == EINTR)) || (rc == 0))
+        client->current_offset += file_len;
+
+    log_info ("Rc: %d Sent:%d Offset:%d Total:%d\n", rc, file_len, client->current_offset, client->current_size);
+    if (rc == -1) {
+        if (errno == EAGAIN) {
+            client->state = SENDFILE;
+            close (file_fd);
+            rioev_del (worker->rioev, client->fd);
+            rioev_add (worker->rioev, client->fd, RIOEV_OUT);
+            return;
+        } else {
+            client->state = ERROR;
+            close (file_fd);
+            rioev_del (worker->rioev, client->fd);
+            close (client->fd);
+            hash_del (worker->clients, client->fd);
+            return;
+        }
+    }
+
+    if (client->current_offset < client->current_size) {
+        client->state = SENDFILE;
+        close (file_fd);
+        rioev_del (worker->rioev, client->fd);
+        rioev_add (worker->rioev, client->fd, RIOEV_OUT);
+        return;
+    }
+#endif
 #endif
 
     close (file_fd);

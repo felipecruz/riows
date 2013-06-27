@@ -12,6 +12,9 @@ endif
 ifeq ($(UNAME_S),Darwin)
     FLAGS += -std=c99
 endif
+ifeq ($(UNAME_S),FreeBSD)
+    FLAGS += -std=c99
+endif
 
 SOURCES=$(SRC)/rioev.c $(SRC)/rhttp.c $(SRC)/rstatic.c $(SRC)/rnetwork.c
 MAIN_SOURCES=$(SOURCES) $(SRC)/riows.c

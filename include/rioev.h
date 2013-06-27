@@ -32,7 +32,7 @@
              i < total;                                                 \
              ev = &ctx->events[i])                                      \
 
-#elif __APPLE__
+#elif (__APPLE__ || __FreeBSD__)
 #include <sys/types.h>
 #include <sys/event.h>
 #include <sys/time.h>
@@ -44,6 +44,7 @@
 #define GET_FD(ev) (int)ev->ident
 #define IS_RIOEV_IN(ev) (ev->filter == RIOEV_IN)
 #define IS_RIOEV_OUT(ev) (ev->filter == RIOEV_OUT)
+#define IS_RIOEV_ERR(ev) (ev->flags == EV_ERROR)
 
 #define ITERATE(ctx, timeout)                                              \
     while (1) {                                                            \
@@ -67,7 +68,7 @@ struct rioev_s {
 #ifdef __linux__
     int epollfd;
     struct epoll_event events[MAX_EVENTS];
-#elif __APPLE__
+#elif (__APPLE__ || __FreeBSD__)
     int kqfd;
     int nevents;
     struct kevent changelist[MAX_EVENTS];

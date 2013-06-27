@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include "hash.h"
 
 #ifndef _RIOWS_H_
 #define _RIOWS_H_
@@ -25,6 +26,7 @@ typedef struct {
     int fd;
     char name[10];
     rioev_t *rioev;
+    hash *clients;
 } rio_worker_t;
 
 typedef struct {
@@ -32,8 +34,8 @@ typedef struct {
     char *path;
     int method;
     enum riows_client_states state;
-    size_t current_offset;
-    int current_size;
+    off_t current_offset;
+    off_t current_size;
 } rio_client_t;
 
 int main (int argc, char **argv);
