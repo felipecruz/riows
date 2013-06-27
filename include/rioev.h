@@ -44,6 +44,7 @@
 #define GET_FD(ev) (int)ev->ident
 #define IS_RIOEV_IN(ev) (ev->filter == RIOEV_IN)
 #define IS_RIOEV_OUT(ev) (ev->filter == RIOEV_OUT)
+#define IS_RIOEV_ERR(ev) (ev->flags == EV_ERROR)
 
 #define ITERATE(ctx, timeout)                                              \
     while (1) {                                                            \
