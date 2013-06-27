@@ -89,7 +89,6 @@ void del_and_close (rio_worker_t *worker, rio_client_t *client)
 
     rioev_del (worker->rioev, client->fd);
     close (client->fd);
-
     hash_del (worker->clients, client->fd);
 }
 
@@ -98,10 +97,6 @@ void handle_request (rio_worker_t *worker, rio_client_t *client)
     int rc;
     size_t parsed;
     char buffer[8192];
-
-    if (client->state == ERROR) {
-        return;
-    }
 
     http_parser *parser = malloc (sizeof (http_parser));
     if (parser == NULL)
@@ -112,7 +107,6 @@ void handle_request (rio_worker_t *worker, rio_client_t *client)
 
     rc = recv (client->fd, buffer, 8192, MSG_DONTWAIT);
     if ((rc == -1) || (rc == 0)) {
-        client->state = ERROR;
         del_and_close (worker, client);
         free(parser);
         return;
@@ -155,6 +149,16 @@ int rnetwork_loop (rio_worker_t *worker)
         EVENT_LOOP(worker->rioev)
         {
             log_debug ("Worker fd:%d event fd:%d\n", worker->fd, GET_FD(ev));
+            if (total == -1 && IS_RIOEV_ERR(ev)) {
+                log_info ("Event Error\n");
+                close (GET_FD(ev));
+                rioev_del (worker->rioev, GET_FD(ev));
+                i++;
+                continue;
+            } else if (total == -1) {
+                handle_error ("Polling Error\n");
+            }
+
             if (worker->fd == GET_FD(ev)) {
                 if (IS_RIOEV_IN(ev)) {
                     new_client = malloc (sizeof (rio_client_t));
