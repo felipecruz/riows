@@ -172,11 +172,20 @@ int rnetwork_loop (rio_worker_t *worker)
                 }
             } else {
                 el = hash_get (worker->clients, GET_FD(ev));
-                if (IS_RIOEV_IN(ev)) {
-                    handle_request (worker, el->value);
-                } else if (IS_RIOEV_OUT(ev)) {
-                    handle_write (worker, el->value);
-
+                if (el == NULL || el->value == NULL) {
+                    log_info ("Invalid CLIENT\n");
+                    close (GET_FD(ev));
+                    rioev_del (worker->rioev, GET_FD(ev));
+                    i++;
+                    continue;
+                } else {
+                    if (IS_RIOEV_IN(ev)) {
+                        handle_request (worker, el->value);
+                    } else if (IS_RIOEV_OUT(ev)) {
+                        handle_write (worker, el->value);
+                    } else {
+                        log_debug ("Unkow Event Mask\n");
+                    } 
                 }
             }
         END_LOOP
