@@ -23,7 +23,7 @@ DEPS=vendor/http-parser/http_parser.o vendor/cws/b64.o vendor/cws/cws.o \
 	 vendor/cdats/hash.o
 
 all: bin_dir http_parser.o cws.o cdats.o
-	$(GCC) $(INCLUDES) $(FLAGS) $(DEPS) $(MAIN_SOURCES) -o $(BUILD)/riows
+	$(GCC) $(INCLUDES) $(DEPS) $(MAIN_SOURCES) -o $(BUILD)/riows $(FLAGS)
 clean:
 	@rm -rf build/
 bin_dir:
@@ -32,9 +32,9 @@ install:
 	cp $(BUILD)/riows /usr/local/bin/
 
 debug: bin_dir
-	$(GCC) $(INCLUDES) -g $(FLAGS) $(DEPS) $(MAIN_SOURCES) -o $(BUILD)/riows -DDEBUG=1
+	$(GCC) $(INCLUDES) -g $(DEPS) $(MAIN_SOURCES) -o $(BUILD)/riows -DDEBUG=1 $(FLAGS)
 leak:
-	$(GCC) $(INCLUDES) -g $(FLAGS) $(DEPS) $(MAIN_SOURCES) -o $(BUILD)/riows -DDEBUG=1 && sudo valgrind --leak-check=full build/riows
+	$(GCC) $(INCLUDES) -g $(DEPS) $(MAIN_SOURCES) -o $(BUILD)/riows -DDEBUG=1 $(FLAGS) && sudo valgrind --leak-check=full build/riows
 
 
 ifneq ($(filter$(MAKECMDGOALS),with_args), "")
