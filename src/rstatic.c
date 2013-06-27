@@ -188,7 +188,7 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
     if (((rc == -1) && (errno == EAGAIN || errno == EINTR)) || (rc == 0))
         client->current_offset += file_len;
 
-    log_info ("Sent:%d Offset:%d Total:%d\n", file_len, client->current_offset, client->current_size);
+    log_info ("Rc: %d Sent:%d Offset:%d Total:%d\n", rc, file_len, client->current_offset, client->current_size);
     if (rc == -1) {
         if (errno == EAGAIN) {
             client->state = SENDFILE;
@@ -198,7 +198,7 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
             return;
         } else {
             close (file_fd);
-            rioev_del (worker->rioev, client->fd);
+            del_and_close (worker, client);
             return;
         }
     }
