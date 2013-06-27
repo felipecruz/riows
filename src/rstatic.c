@@ -197,8 +197,11 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
             rioev_add (worker->rioev, client->fd, RIOEV_OUT);
             return;
         } else {
+            client->state = ERROR;
             close (file_fd);
-            del_and_close (worker, client);
+            rioev_del (worker->rioev, client->fd);
+            close (client->fd);
+            hash_del (worker->clients, client->fd);
             return;
         }
     }
