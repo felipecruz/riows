@@ -1,56 +1,3 @@
-# Riows
-
-Riows is a webserver built for easy deployment and installation that will handle static files and dynamic content.
-
-## Little history
-
-Riows is a re-write from scratch of my old webserver `rio` (https://github.com/felipecruz/rio) which is linux compatible, only, and
-has many design flaws (although it does more than handle static files). When I started `rio` I wasn't prepared for creating such a
-complex project but I did managed to create a good websocket parser library (https://github.com/felipecruz/cws) and a utf8 sequence
-validator (https://github.com/felipecruz/utf8v) while developing it.
-
-## Compatibility
-
-Currently, it only works on **64 bits** systems and it's testes against: Linux, OSX and FreeBSD.
-
-## Features
-
-So far, Riows only handle static content and it'll serve the files on the working directory.
-
-## Installing
-
-```sh
-make
-sudo make install
-```
-
-## Running
-
-```sh
-sudo riows
-```
-
-## Testing
-
-Riows has unit tests but still does not have functional tests.
-
-### Running All Unit Tests
-
-```sh
-make ta
-```
-
-### Running specific module Unit Tests
-
-```sh
-make test module_name
-```
-
-`module_name` can be `rioev` or `rstatic`
-
-## License
-
-```
 Copyright (c) 2013, Felipe João Pontes da Cruz
 All rights reserved.
 
@@ -77,4 +24,3 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 The views and conclusions contained in the software and documentation are those
 of the authors and should not be interpreted as representing official policies, 
 either expressed or implied, of the FreeBSD Project.
-```
