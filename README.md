@@ -19,7 +19,12 @@ So far, Riows only handle static content and it'll serve the files on the workin
 
 ## Installing
 
+It depends on `openssl`.
+
 ```sh
+git clone https://github.com/felipecruz/riows.git && cd riows
+git submodule init
+git submodule update
 make
 sudo make install
 ```
