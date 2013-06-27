@@ -64,9 +64,7 @@ void test_rioev_add_del_mod (void)
     ENSURE (0 == rioev_del (rioev, w));
 #ifdef __linux__
     ENSURE (-1 == rioev_mod (rioev, w, 0));
-#endif
-
-#ifdef __APPLE__ || __FreeBSD__
+#elif (__APPLE__ || __FreeBSD__)
 
     /* We need more testing since rioev introduces some complexity
      * managing it's own struct kevent array.
@@ -111,6 +109,8 @@ void test_rioev_add_del_mod (void)
     /* TODO verify returned events if we add same event twice */
     ENSURE (w3 == rioev->changelist[0].ident);
     ENSURE (w3 == rioev->changelist[3].ident);
+
+    ENSURE (-1 == rioev_del (rioev, 1000));
 #endif
 
     /* avoid leak */
