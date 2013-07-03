@@ -3,7 +3,7 @@ SRC=src
 TESTS=tests
 INCLUDES=-Iinclude/ -Ivendor/http-parser -Ivendor/cws/src -Ivendor/cdats/include
 BUILD=build
-FLAGS=-lcrypto -O2
+FLAGS=-lcrypto -lssl -O2
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
