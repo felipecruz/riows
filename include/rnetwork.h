@@ -6,6 +6,7 @@
 #include <cws.h>
 #include <http_parser.h>
 #include <hash.h>
+#include <openssl/ssl.h>
 
 #ifdef __FreeBSD__
 /* include sockaddr_in */

@@ -11,6 +11,8 @@
 #include <unistd.h>
 #include "hash.h"
 
+#include <openssl/ssl.h>
+
 #ifndef _RIOWS_H_
 #define _RIOWS_H_
 
@@ -27,6 +29,7 @@ typedef struct {
     char name[10];
     rioev_t *rioev;
     hash *clients;
+    SSL_CTX *ctx;
 } rio_worker_t;
 
 typedef struct {
@@ -36,6 +39,7 @@ typedef struct {
     enum riows_client_states state;
     off_t current_offset;
     off_t current_size;
+    SSL *ssl;
 } rio_client_t;
 
 int main (int argc, char **argv);
