@@ -134,8 +134,11 @@ int rnetwork_loop (rio_worker_t *worker)
     int new_client;
     hash_elem_t *el;
 
+    init_ssl_context (worker);
+
     worker->fd = socket_bind (80);
     worker->rioev = rioev_init ();
+
     sprintf(worker->name, "WORKER:%d", worker->fd);
     rioev_add (worker->rioev, worker->fd, RIOEV_IN);
     worker->clients = hash_init (MAX_EVENTS + 100);

@@ -3,6 +3,7 @@
 #include <rstatic.h>
 #include <rhttp.h>
 #include <rutils.h>
+#include <rssl.h>
 #include <cws.h>
 #include <http_parser.h>
 #include <hash.h>
