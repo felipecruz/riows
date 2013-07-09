@@ -3,3 +3,5 @@ build/
 *~
 *.a
 *.o
+misc/ssl.key
+misc/ssl.pem
