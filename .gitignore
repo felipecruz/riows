@@ -5,3 +5,4 @@ build/
 *.o
 misc/ssl.key
 misc/ssl.pem
+misc/ssl.p12
