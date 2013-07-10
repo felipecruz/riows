@@ -39,6 +39,7 @@ typedef struct {
     enum riows_client_states state;
     off_t current_offset;
     off_t current_size;
+    short is_ssl;
     SSL *ssl;
 } rio_client_t;
 
