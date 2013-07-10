@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <rioev.h>
 #include <riows.h>
 #include <rstatic.h>
@@ -16,6 +17,6 @@
 
 #ifndef _RNETWORK_H_
 #define _RNETWORK_H_
-int rnetwork_loop (rio_worker_t *worker);
+int rnetwork_loop (rio_worker_t *worker, int secure, int port);
 void del_and_close (rio_worker_t *worker, rio_client_t *client);
 #endif

@@ -26,7 +26,6 @@ void setup_termination_signals ()
 int main (int argc, char **argv)
 {
     int status;
-    int workers = 1;
     char *working_dir_name;
     pid_t pid;
 
@@ -42,8 +41,22 @@ int main (int argc, char **argv)
     rio_worker_t *worker = malloc (sizeof (rio_worker_t));
 
     if (pid == 0) {
-        rnetwork_loop (worker);
+        rnetwork_loop (worker, 0, 80);
         exit (EXIT_SUCCESS);
+    } else {
+        free (worker);
+    }
+
+    if ((pid = fork ()) == -1)
+        handle_error ("Error Forking");
+
+    worker = malloc (sizeof (rio_worker_t));
+
+    if (pid == 0) {
+        rnetwork_loop (worker, 1, 443);
+        exit (EXIT_SUCCESS);
+    } else {
+        free (worker);
     }
 
     working_dir_name = getcwd (NULL, 0);
