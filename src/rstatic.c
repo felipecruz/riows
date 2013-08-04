@@ -38,6 +38,7 @@ char* extract_query_string (char *value)
 
     p = malloc (sizeof (char) * (query - value));
     strcpy (p, (query + 1));
+    *query = '\0';
 
     return p;
 }
