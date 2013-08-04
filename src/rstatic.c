@@ -99,7 +99,7 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
 
     log_debug ("File path: %s\n", path);
     query_string = extract_query_string (path);
-    log_debug ("Query String%s\n", query_string);
+    log_debug ("Query String: %s\n", query_string);
 
     file_fd = open (path, O_RDONLY);
     if (file_fd == -1) {
