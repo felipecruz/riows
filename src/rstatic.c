@@ -38,6 +38,7 @@ char* extract_query_string (char *value)
 
     p = malloc (sizeof (char) * (query - value));
     strcpy (p, (query + 1));
+    *query = '\0';
 
     return p;
 }
@@ -66,7 +67,13 @@ const char* mime_type (char *value)
         return "image/svg+xml";
     }
     else if (strcmp (value, "woff") == 0) {
-        return "application/font-woff";
+        return "application/x-font-ttf";
+    }
+    else if (strcmp (value, "ttf") == 0) {
+        return "application/x-font-ttf";
+    }
+    else if (strcmp (value, "svg") == 0) {
+        return "application/svg";
     }
     else {
         return "plain/text";
@@ -98,7 +105,7 @@ void handle_static (rio_worker_t *worker, rio_client_t *client)
 
     log_debug ("File path: %s\n", path);
     query_string = extract_query_string (path);
-    log_debug ("Query String%s\n", query_string);
+    log_debug ("Query String: %s\n", query_string);
 
     file_fd = open (path, O_RDONLY);
     if (file_fd == -1) {
