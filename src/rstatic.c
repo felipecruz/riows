@@ -67,7 +67,13 @@ const char* mime_type (char *value)
         return "image/svg+xml";
     }
     else if (strcmp (value, "woff") == 0) {
-        return "application/font-woff";
+        return "application/x-font-ttf";
+    }
+    else if (strcmp (value, "ttf") == 0) {
+        return "application/x-font-ttf";
+    }
+    else if (strcmp (value, "svg") == 0) {
+        return "application/svg";
     }
     else {
         return "plain/text";
