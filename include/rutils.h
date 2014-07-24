@@ -1,5 +1,5 @@
 #ifndef _RUTILS_H_
-#define _RUTILS_G_
+#define _RUTILS_H_
 #define handle_error(msg) \
        do { perror(msg);                                      \
             fprintf (stderr, "Errno: %d %s\n", errno,         \
